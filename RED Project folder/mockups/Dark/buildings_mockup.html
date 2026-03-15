@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDBL Real Estate MIS - Buildings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0e17;
+            --sidebar-color: rgba(17, 25, 40, 0.75);
+            --accent-color: #00d4ff;
+            --accent-secondary: #0055ff;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-gradient: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 85, 255, 0.05));
+            --success: #00f2ad;
+            --warning: #ffb300;
+            --error: #ff4d4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-color);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            background: linear-gradient(to right, #00d4ff, #0055ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            transition: 0.3s;
+        }
+
+        .nav-item:hover {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--card-gradient);
+            color: var(--text-primary);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 3rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        /* Building Cards */
+        .building-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .building-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .building-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .building-image {
+            height: 160px;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=400');
+            background-size: cover;
+            padding: 1.5rem;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .building-info {
+            padding: 1.5rem;
+        }
+
+        .building-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .building-address {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .building-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-box small {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-box span {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .occupancy-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .occupancy-progress {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>BDBL</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">Dashboard</li>
+            <li class="nav-item active">Buildings</li>
+            <li class="nav-item">Tenants</li>
+            <li class="nav-item">Agreements</li>
+            <li class="nav-item">Billing & Utility</li>
+            <li class="nav-item">Payments</li>
+            <li class="nav-item">Reports</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <div>
+                <h1 style="font-size: 1.8rem;">Building Assets</h1>
+                <p style="color: var(--text-secondary);">Manage and monitor your real estate properties.</p>
+            </div>
+            <button class="btn btn-primary">+ Add New Building</button>
+        </header>
+
+        <div class="building-grid">
+            <!-- Card 1 -->
+            <div class="building-card">
+                <div class="building-image">
+                    <span
+                        style="background: var(--success); color:#000; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:700;">ACTIVE</span>
+                </div>
+                <div class="building-info">
+                    <h3 class="building-name">Karwan Bazar Branch</h3>
+                    <div class="building-address">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Dhaka, Bangladesh
+                    </div>
+                    <div class="occupancy-bar">
+                        <div class="occupancy-progress" style="width: 85%;"></div>
+                    </div>
+                    <div class="building-stats">
+                        <div class="stat-box">
+                            <small>Total Floors</small>
+                            <span>14</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Total Units</small>
+                            <span>165</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Rentable SF</small>
+                            <span>84,500</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="building-card">
+                <div class="building-image"
+                    style="background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400');">
+                    <span
+                        style="background: var(--success); color:#000; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:700;">ACTIVE</span>
+                </div>
+                <div class="building-info">
+                    <h3 class="building-name">BDBL Head Office</h3>
+                    <div class="building-address">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Dhaka, Motijheel
+                    </div>
+                    <div class="occupancy-bar">
+                        <div class="occupancy-progress" style="width: 95%;"></div>
+                    </div>
+                    <div class="building-stats">
+                        <div class="stat-box">
+                            <small>Total Floors</small>
+                            <span>22</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Total Units</small>
+                            <span>210</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Rentable SF</small>
+                            <span>120,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="building-card">
+                <div class="building-image"
+                    style="background-image: url('https://images.unsplash.com/photo-1554469384-e58fac16e23a?auto=format&fit=crop&q=80&w=400');">
+                    <span
+                        style="background: var(--warning); color:#000; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:700;">MAINTENANCE</span>
+                </div>
+                <div class="building-info">
+                    <h3 class="building-name">Agrabad Branch</h3>
+                    <div class="building-address">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Chattogram
+                    </div>
+                    <div class="occupancy-bar">
+                        <div class="occupancy-progress" style="width: 60%; background: var(--warning);"></div>
+                    </div>
+                    <div class="building-stats">
+                        <div class="stat-box">
+                            <small>Total Floors</small>
+                            <span>8</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Total Units</small>
+                            <span>45</span>
+                        </div>
+                        <div class="stat-box">
+                            <small>Rentable SF</small>
+                            <span>32,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

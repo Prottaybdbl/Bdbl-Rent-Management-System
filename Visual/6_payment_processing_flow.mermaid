@@ -1,0 +1,88 @@
+flowchart LR
+    subgraph "Input"
+        A[Tenant Makes Payment]
+        B[Payment Details]
+        C[Payment Method]
+    end
+    
+    subgraph "Payment Entry"
+        D[Accountant Enters Payment]
+        E[Select Payment Method]
+        F[Enter Amount]
+        G[Add Reference Number]
+    end
+    
+    subgraph "Validation"
+        H{Valid Payment?}
+        I[Check Amount]
+        J[Verify Reference]
+        K[Validate Date]
+    end
+    
+    subgraph "Allocation"
+        L[View Outstanding Bills]
+        M[Select Bills to Pay]
+        N[Allocate Amount]
+        O{Full Payment?}
+    end
+    
+    subgraph "Processing"
+        P[Update Bill Status]
+        Q[Update Arrears]
+        R[Adjust Advance if applicable]
+        S[Generate Receipt]
+    end
+    
+    subgraph "Notification"
+        T[Send Receipt via Email]
+        U[SMS Notification]
+        V[Update Dashboard]
+    end
+    
+    subgraph "Recording"
+        W[Payment Record Created]
+        X[Allocation Records]
+        Y[Audit Log Entry]
+        Z[(Database Updated)]
+    end
+    
+    A --> D
+    B --> D
+    C --> E
+    
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    
+    H -->|Valid| L
+    H -->|Invalid| Error[Show Error]
+    
+    I --> H
+    J --> H
+    K --> H
+    
+    L --> M
+    M --> N
+    N --> O
+    
+    O -->|Yes| P
+    O -->|Partial| P
+    
+    P --> Q
+    Q --> R
+    R --> S
+    
+    S --> T
+    S --> U
+    S --> V
+    
+    S --> W
+    W --> X
+    X --> Y
+    Y --> Z
+    
+    style A fill:#c8e6c9
+    style Error fill:#ffcdd2
+    style Z fill:#fff9c4
+    style S fill:#bbdefb

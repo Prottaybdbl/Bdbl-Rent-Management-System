@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Login - BDBL Rent Management System</title>
+
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(19, 91, 236, 0.1);
+        }
+
+        .dark .glass {
+            background: rgba(16, 22, 34, 0.7);
+            border: 1px solid rgba(19, 91, 236, 0.1);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 15px rgba(19, 91, 236, 0.3);
+        }
+    </style>
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- Abstract Background Elements -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]"></div>
+
+    <!-- Mode Toggle (Absolute) -->
+    <div class="absolute top-8 right-8 z-50">
+        <button onclick="toggleDarkMode()"
+            class="glass p-3 rounded-full border border-primary/20 hover:border-primary/50 transition-all">
+            <span class="material-symbols-outlined text-primary dark:hidden">dark_mode</span>
+            <span class="material-symbols-outlined text-yellow-400 hidden dark:block">light_mode</span>
+        </button>
+    </div>
+
+    <div
+        class="glass w-full max-w-md rounded-[2.5rem] p-10 relative z-10 flex flex-col gap-8 transition-all duration-500">
+
+        <!-- Branding -->
+        <div class="flex flex-col items-center gap-3">
+            <div class="bg-primary/10 p-4 rounded-2xl border border-primary/20 text-primary">
+                <span class="material-symbols-outlined text-4xl">apartment</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight dark:text-glow">BDBL RMS
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 font-medium">Rent Management System</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Welcome Back</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Please enter your credentials to access the portal.
+            </p>
+        </div>
+
+        <!-- Login Form -->
+        <form th:action="@{/login}" method="post" class="flex flex-col gap-6">
+            <div th:if="${param.error}"
+                class="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-500 text-sm font-medium">
+                Invalid username or password.
+            </div>
+            <div th:if="${param.logout}"
+                class="bg-primary/10 border border-primary/20 p-3 rounded-xl text-primary text-sm font-medium">
+                You have been logged out.
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Username</label>
+                    <div class="relative">
+                        <span
+                            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">person</span>
+                        <input type="text" name="username" required placeholder="User ID"
+                            class="w-full pl-12 pr-4 py-3.5 bg-slate-100 dark:bg-slate-900/50 border border-transparent focus:border-primary/30 rounded-2xl outline-none text-slate-800 dark:text-white transition-all" />
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Password</label>
+                    <div class="relative">
+                        <span
+                            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">lock</span>
+                        <input type="password" name="password" required placeholder="••••••••"
+                            class="w-full pl-12 pr-4 py-3.5 bg-slate-100 dark:bg-slate-900/50 border border-transparent focus:border-primary/30 rounded-2xl outline-none text-slate-800 dark:text-white transition-all" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between px-1">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" name="remember-me"
+                        class="rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary focus:ring-primary/20" />
+                    <span
+                        class="text-sm text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">Remember
+                        Me</span>
+                </label>
+                <a href="#" class="text-sm font-semibold text-primary hover:text-primary/70 transition-colors">Forgot
+                    Password?</a>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all duration-300 transform hover:scale-[1.02]">
+                Sign In
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="text-xs text-slate-400">© 2026 BDBL Real Estate. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+    </script>
+</body>
+
+</html>

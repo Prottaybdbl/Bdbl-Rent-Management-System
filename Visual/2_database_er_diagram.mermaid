@@ -1,0 +1,110 @@
+erDiagram
+    BUILDINGS ||--o{ FLOORS : contains
+    FLOORS ||--o{ UNITS : contains
+    BUILDINGS ||--o{ PARKING_SPACES : has
+    
+    TENANTS ||--o{ TENANT_CONTACTS : has
+    TENANTS ||--o{ LEASE_AGREEMENTS : signs
+    
+    LEASE_AGREEMENTS ||--o{ AGREEMENT_UNITS : includes
+    LEASE_AGREEMENTS ||--o{ AGREEMENT_PARKING : includes
+    LEASE_AGREEMENTS ||--o{ AGREEMENT_DOCUMENTS : has
+    
+    UNITS ||--o{ AGREEMENT_UNITS : rented_in
+    PARKING_SPACES ||--o{ AGREEMENT_PARKING : rented_in
+    
+    LEASE_AGREEMENTS ||--o{ RENT_BILLS : generates
+    LEASE_AGREEMENTS ||--o{ UTILITY_BILLS : generates
+    
+    RENT_BILLS ||--o{ PAYMENT_ALLOCATIONS : receives
+    UTILITY_BILLS ||--o{ PAYMENT_ALLOCATIONS : receives
+    
+    TENANTS ||--o{ PAYMENTS : makes
+    PAYMENTS ||--o{ PAYMENT_ALLOCATIONS : splits_into
+    
+    TENANTS ||--o{ ARREARS : has
+    RENT_BILLS ||--o{ ARREARS : creates
+    
+    UNITS ||--o{ UTILITY_METERS : has
+    UTILITY_METERS ||--o{ METER_READINGS : records
+    UTILITY_METERS ||--o{ UTILITY_BILLS : generates
+    
+    UTILITY_TYPES ||--o{ UTILITY_METERS : categorizes
+    UTILITY_TYPES ||--o{ UTILITY_RATE_SLABS : defines
+    
+    TENANTS ||--o{ ADVANCE_PAYMENTS : makes
+    ADVANCE_PAYMENTS ||--o{ ADVANCE_ADJUSTMENTS : adjusted_by
+    
+    USERS ||--o{ USER_PERMISSIONS : has
+    USERS ||--o{ AUDIT_LOGS : creates
+    
+    BUILDINGS {
+        int building_id PK
+        string building_name
+        string building_code
+        string address
+        int total_floors
+        decimal total_area_sqft
+    }
+    
+    FLOORS {
+        int floor_id PK
+        int building_id FK
+        string floor_number
+        decimal total_area_sqft
+    }
+    
+    UNITS {
+        int unit_id PK
+        int building_id FK
+        int floor_id FK
+        string unit_number
+        string unit_type
+        decimal area_sqft
+        string status
+    }
+    
+    TENANTS {
+        int tenant_id PK
+        string tenant_code
+        string company_name
+        string trade_license_no
+        string tin_number
+        string phone_primary
+        string email_primary
+    }
+    
+    LEASE_AGREEMENTS {
+        int agreement_id PK
+        int tenant_id FK
+        string agreement_number
+        date start_date
+        date end_date
+        decimal total_monthly_rent
+        string status
+    }
+    
+    RENT_BILLS {
+        int bill_id PK
+        int agreement_id FK
+        int tenant_id FK
+        date billing_month
+        decimal total_amount
+        decimal paid_amount
+        string status
+    }
+    
+    PAYMENTS {
+        int payment_id PK
+        int tenant_id FK
+        date payment_date
+        string payment_method
+        decimal amount
+    }
+    
+    UTILITY_METERS {
+        int meter_id PK
+        string meter_number
+        int utility_type_id FK
+        int unit_id FK
+    }

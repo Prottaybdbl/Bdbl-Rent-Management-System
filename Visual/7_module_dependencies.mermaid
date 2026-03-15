@@ -1,0 +1,77 @@
+graph TB
+    subgraph "Core Master Modules"
+        A[Building Management]
+        B[Tenant Management]
+        C[User Management]
+    end
+    
+    subgraph "Transaction Modules"
+        D[Lease Agreement]
+        E[Utility Management]
+        F[Payment Management]
+    end
+    
+    subgraph "Processing Modules"
+        G[Bill Generation]
+        H[Arrears Management]
+        I[Notification System]
+    end
+    
+    subgraph "Reporting Modules"
+        J[Dashboard]
+        K[Reports]
+        L[Analytics]
+    end
+    
+    subgraph "Supporting Modules"
+        M[Audit Trail]
+        N[Document Management]
+        O[System Settings]
+    end
+    
+    A --> D
+    B --> D
+    
+    D --> G
+    E --> G
+    
+    G --> F
+    F --> H
+    
+    H --> I
+    G --> I
+    D --> I
+    
+    D --> J
+    F --> J
+    H --> J
+    
+    A --> K
+    B --> K
+    D --> K
+    F --> K
+    H --> K
+    
+    K --> L
+    
+    C --> M
+    D --> M
+    F --> M
+    
+    D --> N
+    B --> N
+    
+    C --> O
+    
+    style A fill:#ffccbc
+    style B fill:#ffccbc
+    style C fill:#ffccbc
+    style D fill:#c5cae9
+    style E fill:#c5cae9
+    style F fill:#c5cae9
+    style G fill:#b2dfdb
+    style H fill:#b2dfdb
+    style I fill:#b2dfdb
+    style J fill:#fff9c4
+    style K fill:#fff9c4
+    style L fill:#fff9c4

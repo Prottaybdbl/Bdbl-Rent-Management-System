@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDBL Real Estate MIS - Lease Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --sidebar-color: #ffffff;
+            --accent-color: #0077cc;
+            --accent-secondary: #005fa3;
+            --accent-light: #dbeafe;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --success: #00a876;
+            --shadow: 0 2px 16px rgba(0,0,0,0.07);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); display: flex; min-height: 100vh; }
+
+        .sidebar { width: 260px; background: var(--sidebar-color); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; position: fixed; height: 100vh; box-shadow: 2px 0 12px rgba(0,0,0,0.05); }
+        .logo { font-size: 1.5rem; font-weight: 700; margin-bottom: 3rem; display: flex; align-items: center; gap: 10px; }
+        .logo span { background: linear-gradient(to right, #0077cc, #005fa3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        .nav-item { padding: 12px 16px; border-radius: 12px; cursor: pointer; color: var(--text-secondary); font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: #f0f4f8; color: var(--text-primary); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(0,119,204,0.12), rgba(0,95,163,0.06)); color: var(--accent-color); border-left: 4px solid var(--accent-color); font-weight: 600; }
+
+        .main-content { margin-left: 260px; flex: 1; padding: 2rem 4rem; }
+        .header { margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 6px; }
+        h1 { font-size: 1.8rem; font-weight: 700; }
+
+        /* Stepper */
+        .stepper { display: flex; justify-content: space-between; margin-bottom: 3rem; position: relative; }
+        .stepper::before { content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: var(--border-color); z-index: 1; }
+        .step { position: relative; z-index: 2; background: var(--bg-color); padding: 0 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-color); background: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: var(--text-secondary); }
+        .step.active .step-circle { background: var(--accent-color); border-color: var(--accent-color); color: white; }
+        .step.completed .step-circle { background: var(--success); border-color: var(--success); color: white; }
+        .step-label { font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); }
+        .step.active .step-label { color: var(--accent-color); font-weight: 700; }
+        .step.completed .step-label { color: var(--success); }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 35px; }
+        .form-card { background: var(--white); border-radius: 20px; padding: 2.5rem; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .form-section { margin-bottom: 2rem; }
+        .form-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 1.5rem; }
+        .field { display: flex; flex-direction: column; gap: 7px; }
+        .field label { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em; }
+        .field input, .field select { padding: 11px 14px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; font-family: 'Outfit', sans-serif; color: var(--text-primary); background: #f7fafc; transition: 0.2s; outline: none; }
+        .field input:focus, .field select:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(0,119,204,0.1); background: #fff; }
+
+        /* Summary Panel */
+        .summary-card { background: var(--accent-color); color: white; padding: 2rem; border-radius: 20px; position: sticky; top: 2rem; height: fit-content; box-shadow: 0 8px 30px rgba(0,119,204,0.3); }
+        .summary-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.25); padding-bottom: 0.75rem; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.88rem; opacity: 0.9; }
+        .summary-total { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.25); font-size: 1.25rem; font-weight: 700; display: flex; justify-content: space-between; }
+        .summary-note { font-size: 0.73rem; margin-top: 14px; opacity: 0.75; }
+
+        .btn-group { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 12px; }
+        .btn { padding: 11px 28px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.25s; border: none; font-family: 'Outfit', sans-serif; font-size: 0.9rem; }
+        .btn-secondary { background: #edf2f7; color: #475569; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-primary { background: var(--accent-color); color: white; box-shadow: 0 2px 10px rgba(0,119,204,0.25); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 18px rgba(0,119,204,0.35); }
+        .btn-draft { background: #f0f4f8; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 9px 18px; border-radius: 9px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="-webkit-text-fill-color:initial">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>BDBL</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">Dashboard</li>
+            <li class="nav-item">Buildings</li>
+            <li class="nav-item">Tenants</li>
+            <li class="nav-item active">Agreements</li>
+            <li class="nav-item">Billing & Utility</li>
+            <li class="nav-item">Payments</li>
+            <li class="nav-item">Reports</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <div class="breadcrumb">Agreements / New Lease</div>
+                <h1>Create New Lease Agreement</h1>
+            </div>
+            <button class="btn-draft">✓ Draft Saved</button>
+        </div>
+
+        <div class="stepper">
+            <div class="step completed">
+                <div class="step-circle">✓</div>
+                <div class="step-label">Tenant Info</div>
+            </div>
+            <div class="step active">
+                <div class="step-circle">2</div>
+                <div class="step-label">Unit Selection</div>
+            </div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <div class="step-label">Financials</div>
+            </div>
+            <div class="step">
+                <div class="step-circle">4</div>
+                <div class="step-label">Documents</div>
+            </div>
+            <div class="step">
+                <div class="step-circle">5</div>
+                <div class="step-label">Review</div>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-card">
+                <div class="form-section">
+                    <h3>Building & Unit Selection</h3>
+                    <div class="input-group">
+                        <div class="field">
+                            <label>Select Building</label>
+                            <select>
+                                <option>Karwan Bazar Branch</option>
+                                <option>Head Office, Dhaka</option>
+                                <option>Khulna Branch</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Select Floor</label>
+                            <select>
+                                <option>Ground Floor</option>
+                                <option>2nd Floor</option>
+                                <option>5th Floor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-bottom: 1.5rem;">
+                        <label>Available Units</label>
+                        <select multiple style="height: 100px;">
+                            <option selected>Unit 201 (1,240 sqft)</option>
+                            <option selected>Unit 202 (850 sqft)</option>
+                            <option>Unit 205 (2,100 sqft)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Timeline & Duration</h3>
+                    <div class="input-group">
+                        <div class="field">
+                            <label>Agreement Date</label>
+                            <input type="date" value="2026-02-15">
+                        </div>
+                        <div class="field">
+                            <label>Start Date</label>
+                            <input type="date" value="2026-03-01">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <div class="field">
+                            <label>Duration (Months)</label>
+                            <input type="number" value="36">
+                        </div>
+                        <div class="field">
+                            <label>Notice Period (Days)</label>
+                            <input type="number" value="60">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary">Back</button>
+                    <button class="btn btn-primary">Continue to Financials →</button>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3 class="summary-title">Lease Summary</h3>
+                <div class="summary-item"><span>Tenant:</span><span style="font-weight:700">Grameenphone Ltd.</span></div>
+                <div class="summary-item"><span>Total Area:</span><span>2,090 sqft</span></div>
+                <div class="summary-item"><span>Base Rent/sqft:</span><span>৳ 25.00</span></div>
+                <div class="summary-item"><span>Service Charge:</span><span>৳ 5.00/sqft</span></div>
+                <div class="summary-item"><span>VAT (15%):</span><span>৳ 9,405.00</span></div>
+                <div class="summary-total"><span>Monthly:</span><span>৳ 72,105</span></div>
+                <p class="summary-note">* Excluding utility and late fees.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

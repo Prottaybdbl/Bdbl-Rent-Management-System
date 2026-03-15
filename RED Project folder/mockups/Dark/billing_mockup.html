@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDBL Real Estate MIS - Billing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0e17;
+            --sidebar-color: rgba(17, 25, 40, 0.75);
+            --accent-color: #00d4ff;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-color);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 3rem;
+        }
+
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 2rem;
+        }
+
+        .billing-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .utility-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .utility-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-generate {
+            background: var(--accent-color);
+            color: #000;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .bill-history {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            margin-top: 2rem;
+            padding: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.85rem;
+        }
+
+        td {
+            padding: 15px 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2 style="margin-bottom: 2rem; color: var(--accent-color);">BDBL</h2>
+        <ul style="list-style: none;">
+            <li style="padding: 12px; color: var(--text-secondary);">Dashboard</li>
+            <li style="padding: 12px; color: var(--text-secondary);">Agreements</li>
+            <li style="padding: 12px; color: var(--text-primary); background: var(--glass-bg); border-radius: 12px;">
+                Billing & Utility</li>
+            <li style="padding: 12px; color: var(--text-secondary);">Reports</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Billing & Utilities</h1>
+
+        <div class="billing-grid">
+            <div class="billing-card">
+                <h3 style="margin-bottom: 1.5rem;">Quick Bill Generation</h3>
+                <div style="margin-bottom: 15px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">Billing
+                        Month</label>
+                    <input type="month"
+                        style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">Target
+                        Building</label>
+                    <select
+                        style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+                        <option>Karwan Bazar Branch</option>
+                        <option>Head Office</option>
+                    </select>
+                </div>
+                <button class="btn btn-generate">Generate All Rent Bills</button>
+            </div>
+
+            <div class="billing-card">
+                <h3 style="margin-bottom: 1.5rem;">Utility Reading Status</h3>
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon">⚡</div>
+                        <div>
+                            <div style="font-weight: 600;">Electricity</div>
+                            <small style="color: var(--text-secondary);">142/165 Meters Read</small>
+                        </div>
+                    </div>
+                    <button class="btn"
+                        style="background: rgba(255,255,255,0.1); color: white; font-size: 0.8rem;">Enter Data</button>
+                </div>
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon">💧</div>
+                        <div>
+                            <div style="font-weight: 600;">Water</div>
+                            <small style="color: var(--text-secondary);">165/165 Completed</small>
+                        </div>
+                    </div>
+                    <button class="btn"
+                        style="background: rgba(0, 242, 173, 0.2); color: #00f2ad; font-size: 0.8rem;">View All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bill-history">
+            <h3>Recent Bills (Feb 2026)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Tenant</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#RB-2026-001</td>
+                        <td>Samsung Electronics</td>
+                        <td>Rent Bill</td>
+                        <td>৳ 85,000</td>
+                        <td style="color: #00f2ad;">PAID</td>
+                        <td>10 Feb 2026</td>
+                    </tr>
+                    <tr>
+                        <td>#UB-2026-042</td>
+                        <td>Samsung Electronics</td>
+                        <td>Electricity</td>
+                        <td>৳ 4,250</td>
+                        <td style="color: #ffb300;">PENDING</td>
+                        <td>15 Feb 2026</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

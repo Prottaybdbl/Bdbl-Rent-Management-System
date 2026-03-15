@@ -1,0 +1,51 @@
+graph TB
+    subgraph "Frontend Layer"
+        A[Web Browser] --> B[React/Vue.js Application]
+        B --> C[UI Components]
+        B --> D[State Management]
+        B --> E[API Client]
+    end
+    
+    subgraph "API Gateway"
+        E --> F[REST API Gateway]
+        F --> G[Authentication/JWT]
+        F --> H[Rate Limiting]
+    end
+    
+    subgraph "Backend Layer"
+        G --> I[Node.js/Python Backend]
+        I --> J[Business Logic]
+        I --> K[Data Validation]
+        I --> L[File Processing]
+    end
+    
+    subgraph "Database Layer"
+        J --> M[(PostgreSQL Database)]
+        M --> N[Buildings]
+        M --> O[Tenants]
+        M --> P[Agreements]
+        M --> Q[Payments]
+        M --> R[Utility Bills]
+    end
+    
+    subgraph "External Services"
+        I --> S[Email Service]
+        I --> T[SMS Gateway]
+        I --> U[Report Generator]
+        U --> V[PDF Export]
+        U --> W[Excel Export]
+    end
+    
+    subgraph "Background Jobs"
+        X[Scheduler] --> Y[Monthly Bill Generation]
+        X --> Z[Arrears Calculation]
+        X --> AA[Notification Sending]
+        X --> AB[Agreement Expiry Alerts]
+    end
+    
+    J --> X
+    
+    style A fill:#e1f5ff
+    style M fill:#fff9c4
+    style I fill:#c8e6c9
+    style F fill:#ffccbc

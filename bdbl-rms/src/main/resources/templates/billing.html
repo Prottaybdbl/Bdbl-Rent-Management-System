@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{layout :: head('Billing & Utility')}"></head>
+
+<body>
+
+    <div th:replace="~{layout :: sidebar('billing')}"></div>
+
+    <div class="main-content">
+        <style>
+            header {
+                margin-bottom: 0.4rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+
+            .subtitle {
+                color: var(--text-secondary);
+                margin-top: 4px;
+                font-size: 0.95rem;
+            }
+
+            .billing-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 25px;
+                margin-top: 2rem;
+            }
+
+            @media (max-width: 1024px) {
+                .billing-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .billing-card {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 20px;
+                padding: 1.75rem;
+                box-shadow: var(--shadow);
+            }
+
+            .billing-card h3 {
+                font-size: 1rem;
+                font-weight: 700;
+                margin-bottom: 1.5rem;
+                color: var(--text-primary);
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                display: block;
+                font-size: 0.78rem;
+                font-weight: 600;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 6px;
+            }
+
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 10px 14px;
+                background: rgba(0, 0, 0, 0.02);
+                border: 1px solid var(--glass-border);
+                border-radius: 10px;
+                color: var(--text-primary);
+                font-size: 0.9rem;
+                transition: 0.2s;
+                outline: none;
+            }
+
+            .dark .form-group input,
+            .dark .form-group select {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .form-group input:focus,
+            .form-group select:focus {
+                border-color: var(--accent-color);
+                box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.1);
+            }
+
+            .btn {
+                padding: 10px 20px;
+                border-radius: 10px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                transition: 0.25s;
+                font-size: 0.9rem;
+            }
+
+            .btn-generate {
+                background: var(--accent-color);
+                color: #fff;
+                width: 100%;
+                margin-top: 10px;
+                padding: 12px;
+                box-shadow: 0 2px 10px rgba(0, 119, 204, 0.25);
+            }
+
+            .btn-generate:hover {
+                background: var(--accent-secondary);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 18px rgba(0, 119, 204, 0.35);
+            }
+
+            .utility-box {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 14px 16px;
+                background: rgba(0, 0, 0, 0.02);
+                border: 1px solid var(--glass-border);
+                border-radius: 14px;
+                margin-bottom: 12px;
+                transition: 0.2s;
+            }
+
+            .dark .utility-box {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .utility-box:hover {
+                border-color: var(--accent-color);
+                box-shadow: 0 2px 10px rgba(0, 119, 204, 0.08);
+            }
+
+            .utility-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                background: rgba(0, 119, 204, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1rem;
+            }
+
+            .utility-name {
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: var(--text-primary);
+            }
+
+            .utility-sub {
+                font-size: 0.78rem;
+                color: var(--text-secondary);
+                margin-top: 2px;
+            }
+
+            .btn-outline {
+                background: var(--glass-bg);
+                color: var(--text-primary);
+                font-size: 0.8rem;
+                padding: 7px 14px;
+                border: 1px solid var(--glass-border);
+            }
+
+            .btn-outline:hover {
+                border-color: var(--text-secondary);
+            }
+
+            .btn-success-soft {
+                background: #d1fae5;
+                color: #065f46;
+                font-size: 0.8rem;
+                padding: 7px 14px;
+                border: 1px solid transparent;
+            }
+
+            .dark .btn-success-soft {
+                background: rgba(0, 242, 173, 0.15);
+                color: var(--success);
+            }
+
+            .bill-history {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 20px;
+                margin-top: 2rem;
+                padding: 1.75rem;
+                box-shadow: var(--shadow);
+            }
+
+            .bill-history h3 {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 1rem;
+            }
+
+            th {
+                text-align: left;
+                padding: 11px 14px;
+                color: var(--text-secondary);
+                border-bottom: 1px solid var(--glass-border);
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            td {
+                padding: 14px;
+                font-size: 0.9rem;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+                color: var(--text-primary);
+            }
+
+            .dark td {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            tr:hover td {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            .dark tr:hover td {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .badge {
+                padding: 4px 10px;
+                border-radius: 50px;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+            }
+
+            .badge-paid {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .badge-pending {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .dark .badge-paid {
+                background: rgba(0, 242, 173, 0.15);
+                color: var(--success);
+            }
+
+            .dark .badge-pending {
+                background: rgba(255, 179, 0, 0.15);
+                color: var(--warning);
+            }
+
+            .bill-id {
+                font-family: monospace;
+                font-size: 0.82rem;
+                color: var(--text-secondary);
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .main-content>* {
+                animation: fadeIn 0.6s ease forwards;
+            }
+        </style>
+
+        <header>
+            <h1>Billing & Utilities</h1>
+            <p class="subtitle">Manage rent bills and utility readings for all properties.</p>
+        </header>
+
+        <div class="billing-grid">
+            <!-- Quick Bill Generation -->
+            <div class="billing-card">
+                <h3>Quick Bill Generation</h3>
+                <div class="form-group">
+                    <label>Billing Month</label>
+                    <input type="month" value="2026-02">
+                </div>
+                <div class="form-group">
+                    <label>Target Building</label>
+                    <select>
+                        <option>Karwan Bazar Branch</option>
+                        <option>BDBL Head Office</option>
+                        <option>Agrabad Branch</option>
+                    </select>
+                </div>
+                <button class="btn btn-generate">Generate All Rent Bills</button>
+            </div>
+
+            <!-- Utility Reading Status -->
+            <div class="billing-card">
+                <h3>Utility Reading Status</h3>
+
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon">⚡</div>
+                        <div>
+                            <div class="utility-name">Electricity</div>
+                            <div class="utility-sub">142 / 165 Meters Read</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline">Enter Data</button>
+                </div>
+
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon" style="background: rgba(0,168,118,0.1);">💧</div>
+                        <div>
+                            <div class="utility-name">Water</div>
+                            <div class="utility-sub">165 / 165 Completed</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success-soft">View All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill History Table -->
+        <div class="bill-history">
+            <h3>Recent Bills — Feb 2026</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Tenant</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="bill-id">#RB-2026-001</span></td>
+                        <td>Samsung Electronics</td>
+                        <td>Rent Bill</td>
+                        <td style="font-weight: 600;">৳ 85,000</td>
+                        <td><span class="badge badge-paid">PAID</span></td>
+                        <td>10 Feb 2026</td>
+                    </tr>
+                    <tr>
+                        <td><span class="bill-id">#UB-2026-042</span></td>
+                        <td>Samsung Electronics</td>
+                        <td>Electricity</td>
+                        <td style="font-weight: 600;">৳ 4,250</td>
+                        <td><span class="badge badge-pending">PENDING</span></td>
+                        <td>15 Feb 2026</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

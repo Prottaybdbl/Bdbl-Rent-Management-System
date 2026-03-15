@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{layout :: head('Dashboard')}"></head>
+
+<body>
+
+    <div th:replace="~{layout :: sidebar('dashboard')}"></div>
+
+    <div class="main-content">
+        <style>
+            /* local styles for dashboard */
+            header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 3rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.8rem;
+                font-weight: 700;
+            }
+
+            .header-title p {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-top: 4px;
+            }
+
+            .user-profile {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                background: var(--glass-bg);
+                padding: 8px 16px;
+                border-radius: 50px;
+                border: 1px solid var(--glass-border);
+                box-shadow: var(--shadow);
+            }
+
+            .user-avatar {
+                width: 35px;
+                height: 35px;
+                background: var(--accent-color);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: #fff;
+                font-size: 0.85rem;
+            }
+
+            .dark .user-avatar {
+                color: #000;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 25px;
+                margin-bottom: 3rem;
+            }
+
+            .stat-card {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                padding: 1.5rem;
+                border-radius: 20px;
+                box-shadow: var(--shadow);
+                transition: 0.3s;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-4px);
+                border-color: rgba(0, 119, 204, 0.4);
+                box-shadow: 0 8px 30px rgba(0, 119, 204, 0.12);
+            }
+
+            .dark .stat-card:hover {
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                border-color: rgba(0, 212, 255, 0.4);
+            }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: -50px;
+                right: -50px;
+                width: 100px;
+                height: 100px;
+                background: var(--accent-color);
+                filter: blur(80px);
+                opacity: 0.15;
+            }
+
+            .stat-label {
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+                display: block;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 700;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .stat-trend {
+                font-size: 0.8rem;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .trend-up {
+                color: var(--success);
+            }
+
+            .trend-down {
+                color: var(--error);
+            }
+
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 25px;
+            }
+
+            @media (max-width: 1024px) {
+                .dashboard-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .panel {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                padding: 1.5rem;
+                box-shadow: var(--shadow);
+            }
+
+            .panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .panel-header h3 {
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+
+            .view-all {
+                color: var(--accent-color);
+                text-decoration: none;
+                font-size: 0.85rem;
+                font-weight: 600;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th {
+                text-align: left;
+                padding: 11px 14px;
+                color: var(--text-secondary);
+                font-size: 0.75rem;
+                font-weight: 600;
+                border-bottom: 1px solid var(--glass-border);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            td {
+                padding: 14px;
+                font-size: 0.9rem;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            }
+
+            .dark td {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            tr:hover td {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            .dark tr:hover td {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .status-pill {
+                padding: 4px 10px;
+                border-radius: 50px;
+                font-size: 0.72rem;
+                font-weight: 700;
+            }
+
+            .status-active {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-expiry {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .status-warning {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .dark .status-active {
+                background: rgba(0, 242, 173, 0.15);
+                color: var(--success);
+            }
+
+            .dark .status-expiry {
+                background: rgba(255, 77, 77, 0.15);
+                color: var(--error);
+            }
+
+            .dark .status-warning {
+                background: rgba(255, 179, 0, 0.15);
+                color: var(--warning);
+            }
+
+            .chart-container {
+                height: 230px;
+                width: 100%;
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                padding-top: 20px;
+                gap: 6px;
+            }
+
+            .bar {
+                flex: 1;
+                min-width: 15px;
+                border-radius: 6px 6px 0 0;
+                transition: 0.3s;
+                background: linear-gradient(to top, var(--accent-secondary), var(--accent-color));
+                opacity: 0.85;
+            }
+
+            .dark .bar {
+                background: var(--card-gradient);
+                background: linear-gradient(to top, var(--accent-secondary), var(--accent-color));
+                opacity: 0.8;
+            }
+
+            .bar:nth-child(even) {
+                opacity: 0.55;
+            }
+
+            .bar:hover {
+                opacity: 1;
+                filter: brightness(1.1);
+                transform: scaleY(1.02);
+            }
+
+            .chart-labels {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 12px;
+                color: var(--text-secondary);
+                font-size: 0.72rem;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .main-content>* {
+                animation: fadeIn 0.6s ease forwards;
+            }
+        </style>
+
+        <header>
+            <div class="header-title">
+                <h1>Overview</h1>
+                <p>Welcome back, Real Estate Admin. Here's what's happening today.</p>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem;">Admin User</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Super Admin</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Monthly Revenue</span>
+                <span class="stat-value">৳ 45,82,500</span>
+                <div class="stat-trend trend-up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                    <span>8.4% since last month</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Occupancy Rate</span>
+                <span class="stat-value" style="color: var(--accent-color);">92.4%</span>
+                <div class="stat-trend trend-up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                    <span>2.1% from last quarter</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Outstanding Arrears</span>
+                <span class="stat-value" style="color: var(--error);">৳ 12,45,000</span>
+                <div class="stat-trend trend-down">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                        <polyline points="17 18 23 18 23 12"></polyline>
+                    </svg>
+                    <span>-1.2% Reduction</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Revenue Trend (12 Months)</h3>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span
+                            style="font-size:0.78rem; color:var(--text-secondary); display:flex; align-items:center; gap:5px;">
+                            <span
+                                style="width:10px; height:10px; background:var(--accent-color); border-radius:3px; display:inline-block;"></span>
+                            Rent
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="bar" style="height:40%"></div>
+                    <div class="bar" style="height:55%"></div>
+                    <div class="bar" style="height:50%"></div>
+                    <div class="bar" style="height:70%"></div>
+                    <div class="bar" style="height:85%"></div>
+                    <div class="bar" style="height:75%"></div>
+                    <div class="bar" style="height:90%"></div>
+                    <div class="bar" style="height:80%"></div>
+                    <div class="bar" style="height:95%"></div>
+                    <div class="bar" style="height:100%"></div>
+                    <div class="bar" style="height:90%"></div>
+                    <div class="bar" style="height:95%"></div>
+                </div>
+                <div class="chart-labels">
+                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                    <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Agreement Expiry</h3>
+                    <a th:href="@{/agreements}" class="view-all">View All</a>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Samsung BD</td>
+                            <td>12 Mar 2026</td>
+                            <td><span class="status-pill status-warning">Notify</span></td>
+                        </tr>
+                        <tr>
+                            <td>Grameenphone</td>
+                            <td>25 Feb 2026</td>
+                            <td><span class="status-pill status-expiry">Expiring</span></td>
+                        </tr>
+                        <tr>
+                            <td>Pathao Ltd</td>
+                            <td>30 Jun 2026</td>
+                            <td><span class="status-pill status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>Bkash Ltd</td>
+                            <td>15 Apr 2026</td>
+                            <td><span class="status-pill status-active">Active</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

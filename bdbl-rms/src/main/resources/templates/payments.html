@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta th:replace="~{layout :: head('Payments')}">
+</head>
+
+<body>
+    <div th:replace="~{layout :: sidebar('payments')}"></div>
+    <div class="main-content">
+        <header style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.8rem; font-weight: 700;">Payments</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem;">Track and manage transaction
+                records.</p>
+        </header>
+        <div
+            style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 3rem; text-align: center; box-shadow: var(--shadow);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">💳</div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">Payments Module</h2>
+            <p style="color: var(--text-secondary);">This module is currently under development. Design mockups will be
+                integrated soon.</p>
+        </div>
+    </div>
+</body>
+
+</html>

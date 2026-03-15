@@ -1,0 +1,49 @@
+flowchart TD
+    Start([Start: 1st of Month]) --> Check{Active Agreements?}
+    
+    Check -->|Yes| Loop[For Each Active Agreement]
+    Check -->|No| End1([End: No Bills to Generate])
+    
+    Loop --> Validate{Valid for Billing?}
+    
+    Validate -->|Start Date <= Current Month| Validate2{End Date >= Current Month?}
+    Validate -->|No| Skip[Skip This Agreement]
+    
+    Validate2 -->|Yes| BillExists{Bill Already Exists?}
+    Validate2 -->|No| Skip
+    
+    BillExists -->|No| Calculate[Calculate Rent Components]
+    BillExists -->|Yes| Skip
+    
+    Calculate --> CalcBase[Base Rent from Agreement]
+    CalcBase --> CalcService[+ Service Charge]
+    CalcService --> CalcParking[+ Parking Charge]
+    CalcParking --> CalcOther[+ Other Charges]
+    CalcOther --> CalcSubtotal[= Subtotal]
+    
+    CalcSubtotal --> CalcVAT[Calculate VAT]
+    CalcVAT --> CalcTax[Calculate Tax]
+    CalcTax --> CalcTotal[= Total Amount]
+    
+    CalcTotal --> GenBillNum[Generate Bill Number]
+    GenBillNum --> SetDueDate[Set Due Date]
+    SetDueDate --> CreateBill[Create Bill Record]
+    
+    CreateBill --> SendNotif[Send Email Notification]
+    SendNotif --> LogAction[Log in Audit Trail]
+    
+    LogAction --> Counter[Increment Counter]
+    Skip --> Counter
+    
+    Counter --> MoreAgreements{More Agreements?}
+    MoreAgreements -->|Yes| Loop
+    MoreAgreements -->|No| Summary[Generate Summary Report]
+    
+    Summary --> End2([End: Bills Generated Successfully])
+    
+    style Start fill:#c8e6c9
+    style End1 fill:#ffcdd2
+    style End2 fill:#c8e6c9
+    style Calculate fill:#fff9c4
+    style CreateBill fill:#bbdefb
+    style SendNotif fill:#e1bee7

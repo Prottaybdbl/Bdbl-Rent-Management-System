@@ -1,0 +1,62 @@
+graph TD
+    subgraph "User Roles"
+        A[Super Admin]
+        B[Manager]
+        C[Data Entry Operator]
+        D[Accountant]
+        E[Viewer/Auditor]
+    end
+    
+    subgraph "Building Management"
+        A --> F1[Full Access]
+        B --> F2[View/Edit]
+        C --> F3[View Only]
+        D --> F4[View Only]
+        E --> F5[View Only]
+    end
+    
+    subgraph "Tenant Management"
+        A --> T1[Full Access]
+        B --> T2[View/Edit/Delete]
+        C --> T3[Create/Edit]
+        D --> T4[View Only]
+        E --> T5[View Only]
+    end
+    
+    subgraph "Agreement Management"
+        A --> AG1[Full Access]
+        B --> AG2[View/Edit/Approve]
+        C --> AG3[Create/Edit]
+        D --> AG4[View Only]
+        E --> AG5[View Only]
+    end
+    
+    subgraph "Payment Management"
+        A --> P1[Full Access]
+        B --> P2[View/Edit/Approve]
+        C --> P3[View Only]
+        D --> P4[Create/Edit/View]
+        E --> P5[View Only]
+    end
+    
+    subgraph "Reporting"
+        A --> R1[All Reports]
+        B --> R2[All Reports]
+        C --> R3[Basic Reports]
+        D --> R4[Financial Reports]
+        E --> R5[All Reports]
+    end
+    
+    subgraph "System Settings"
+        A --> S1[Full Control]
+        B --> S2[No Access]
+        C --> S3[No Access]
+        D --> S4[No Access]
+        E --> S5[No Access]
+    end
+    
+    style A fill:#ff6b6b
+    style B fill:#4ecdc4
+    style C fill:#95e1d3
+    style D fill:#f38181
+    style E fill:#aa96da

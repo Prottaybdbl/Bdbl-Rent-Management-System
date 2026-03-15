@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDBL Real Estate MIS - Billing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --sidebar-color: #ffffff;
+            --accent-color: #0077cc;
+            --accent-secondary: #005fa3;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --glass-bg: #ffffff;
+            --glass-border: #e2e8f0;
+            --success: #00a876;
+            --warning: #e6a800;
+            --error: #e03e3e;
+            --shadow: 0 2px 16px rgba(0,0,0,0.07);
+            --shadow-hover: 0 8px 32px rgba(0,119,204,0.13);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-color);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(to right, #0077cc, #005fa3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f0f4f8;
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0,119,204,0.12), rgba(0,95,163,0.06));
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-color);
+            font-weight: 600;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 3rem;
+        }
+
+        header {
+            margin-bottom: 0.4rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
+
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 2rem;
+        }
+
+        .billing-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow);
+        }
+
+        .billing-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: #f7fafc;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: 'Outfit', sans-serif;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0,119,204,0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .btn-generate {
+            background: var(--accent-color);
+            color: #fff;
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            box-shadow: 0 2px 10px rgba(0,119,204,0.25);
+        }
+
+        .btn-generate:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 18px rgba(0,119,204,0.35);
+        }
+
+        .utility-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: #f7fafc;
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            transition: 0.2s;
+        }
+
+        .utility-box:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 2px 10px rgba(0,119,204,0.08);
+        }
+
+        .utility-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(0,119,204,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .utility-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .utility-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .btn-outline {
+            background: #edf2f7;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            padding: 7px 14px;
+        }
+
+        .btn-outline:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success-soft {
+            background: #d1fae5;
+            color: #065f46;
+            font-size: 0.8rem;
+            padding: 7px 14px;
+        }
+
+        .bill-history {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            margin-top: 2rem;
+            padding: 1.75rem;
+            box-shadow: var(--shadow);
+        }
+
+        .bill-history h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 11px 14px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 14px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f4f8;
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #f7fafc;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .bill-id {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077cc" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" style="-webkit-text-fill-color: initial;">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            BDBL
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">Dashboard</li>
+            <li class="nav-item">Buildings</li>
+            <li class="nav-item">Tenants</li>
+            <li class="nav-item">Agreements</li>
+            <li class="nav-item active">Billing & Utility</li>
+            <li class="nav-item">Payments</li>
+            <li class="nav-item">Reports</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Billing & Utilities</h1>
+            <p class="subtitle">Manage rent bills and utility readings for all properties.</p>
+        </header>
+
+        <div class="billing-grid">
+            <!-- Quick Bill Generation -->
+            <div class="billing-card">
+                <h3>Quick Bill Generation</h3>
+                <div class="form-group">
+                    <label>Billing Month</label>
+                    <input type="month" value="2026-02">
+                </div>
+                <div class="form-group">
+                    <label>Target Building</label>
+                    <select>
+                        <option>Karwan Bazar Branch</option>
+                        <option>BDBL Head Office</option>
+                        <option>Agrabad Branch</option>
+                    </select>
+                </div>
+                <button class="btn btn-generate">Generate All Rent Bills</button>
+            </div>
+
+            <!-- Utility Reading Status -->
+            <div class="billing-card">
+                <h3>Utility Reading Status</h3>
+
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon">⚡</div>
+                        <div>
+                            <div class="utility-name">Electricity</div>
+                            <div class="utility-sub">142 / 165 Meters Read</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline">Enter Data</button>
+                </div>
+
+                <div class="utility-box">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="utility-icon" style="background: rgba(0,168,118,0.1);">💧</div>
+                        <div>
+                            <div class="utility-name">Water</div>
+                            <div class="utility-sub">165 / 165 Completed</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success-soft">View All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill History Table -->
+        <div class="bill-history">
+            <h3>Recent Bills — Feb 2026</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Tenant</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="bill-id">#RB-2026-001</span></td>
+                        <td>Samsung Electronics</td>
+                        <td>Rent Bill</td>
+                        <td style="font-weight: 600;">৳ 85,000</td>
+                        <td><span class="badge badge-paid">PAID</span></td>
+                        <td>10 Feb 2026</td>
+                    </tr>
+                    <tr>
+                        <td><span class="bill-id">#UB-2026-042</span></td>
+                        <td>Samsung Electronics</td>
+                        <td>Electricity</td>
+                        <td style="font-weight: 600;">৳ 4,250</td>
+                        <td><span class="badge badge-pending">PENDING</span></td>
+                        <td>15 Feb 2026</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

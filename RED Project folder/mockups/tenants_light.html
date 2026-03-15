@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDBL Real Estate MIS - Tenants</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --sidebar-color: #ffffff;
+            --accent-color: #0077cc;
+            --accent-secondary: #005fa3;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --glass-bg: #ffffff;
+            --glass-border: #e2e8f0;
+            --success: #00a876;
+            --warning: #e6a800;
+            --error: #e03e3e;
+            --shadow: 0 2px 16px rgba(0,0,0,0.07);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); display: flex; min-height: 100vh; }
+
+        .sidebar { width: 260px; background: var(--sidebar-color); border-right: 1px solid var(--glass-border); padding: 2rem 1.5rem; position: fixed; height: 100vh; box-shadow: 2px 0 12px rgba(0,0,0,0.05); }
+        .logo { font-size: 1.5rem; font-weight: 700; margin-bottom: 3rem; display: flex; align-items: center; gap: 10px; }
+        .logo span { background: linear-gradient(to right, #0077cc, #005fa3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        .nav-item { padding: 12px 16px; border-radius: 12px; cursor: pointer; color: var(--text-secondary); font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: #f0f4f8; color: var(--text-primary); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(0,119,204,0.12), rgba(0,95,163,0.06)); color: var(--accent-color); border-left: 4px solid var(--accent-color); font-weight: 600; }
+
+        .main-content { margin-left: 260px; flex: 1; padding: 2rem 3rem; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { font-size: 1.8rem; font-weight: 700; }
+
+        .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 1.5rem; }
+        .search-bar { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 10px 18px; border-radius: 12px; width: 300px; color: var(--text-primary); font-size: 0.9rem; font-family: 'Outfit', sans-serif; outline: none; box-shadow: var(--shadow); transition: 0.2s; }
+        .search-bar:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(0,119,204,0.1); }
+        .search-bar::placeholder { color: var(--text-secondary); }
+
+        .btn { padding: 10px 20px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; transition: 0.2s; }
+        .btn-primary { background: var(--accent-color); color: #fff; box-shadow: 0 2px 10px rgba(0,119,204,0.25); }
+        .btn-primary:hover { background: var(--accent-secondary); transform: translateY(-1px); }
+
+        .tenant-table-container { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; overflow: hidden; box-shadow: var(--shadow); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 14px; color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; border-bottom: 1px solid var(--glass-border); text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 16px 14px; font-size: 0.9rem; border-bottom: 1px solid #f0f4f8; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f7fafc; }
+
+        .tenant-info { display: flex; align-items: center; gap: 12px; }
+        .tenant-logo { width: 40px; height: 40px; border-radius: 10px; background: #f0f4f8; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 1px solid var(--glass-border); font-size: 0.85rem; }
+        .tenant-name { font-weight: 600; color: var(--text-primary); }
+        .tenant-type { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+        .status-badge { padding: 4px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+        .status-active { background: #d1fae5; color: #065f46; }
+        .status-expired { background: #fee2e2; color: #991b1b; }
+
+        .btn-action { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--glass-border); background: #f7fafc; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 0.82rem; font-family: 'Outfit', sans-serif; transition: 0.2s; }
+        .btn-action:hover { background: #e2e8f0; border-color: var(--accent-color); color: var(--accent-color); }
+        .btn-renew { color: var(--error); border-color: #fecaca; background: #fff5f5; }
+        .btn-renew:hover { background: #fee2e2; border-color: var(--error); }
+
+        .subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="-webkit-text-fill-color:initial">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>BDBL</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">Dashboard</li>
+            <li class="nav-item">Buildings</li>
+            <li class="nav-item active">Tenants</li>
+            <li class="nav-item">Agreements</li>
+            <li class="nav-item">Billing & Utility</li>
+            <li class="nav-item">Payments</li>
+            <li class="nav-item">Reports</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <div>
+                <h1>Tenant Management</h1>
+                <p class="subtitle">View and manage all registered tenants.</p>
+            </div>
+            <button class="btn btn-primary">+ Add Tenant</button>
+        </header>
+
+        <div class="toolbar">
+            <input type="text" class="search-bar" placeholder="🔍  Search company or trade license...">
+        </div>
+
+        <div class="tenant-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company Name</th>
+                        <th>Trade License</th>
+                        <th>Space Occupied</th>
+                        <th>Monthly Rent</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="tenant-info">
+                                <div class="tenant-logo" style="color: #e47911;">AM</div>
+                                <div>
+                                    <div class="tenant-name">Amazon BD Ltd.</div>
+                                    <div class="tenant-type">Technology</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.85rem;">TL-9482012</td>
+                        <td>4,500 SF</td>
+                        <td style="font-weight: 600;">৳ 1,35,000</td>
+                        <td><span class="status-badge status-active">ACTIVE</span></td>
+                        <td><button class="btn-action">Profile</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="tenant-info">
+                                <div class="tenant-logo" style="color: #0077cc;">GP</div>
+                                <div>
+                                    <div class="tenant-name">Grameenphone</div>
+                                    <div class="tenant-type">Telecom</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.85rem;">TL-1102931</td>
+                        <td>12,000 SF</td>
+                        <td style="font-weight: 600;">৳ 4,20,000</td>
+                        <td><span class="status-badge status-active">ACTIVE</span></td>
+                        <td><button class="btn-action">Profile</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="tenant-info">
+                                <div class="tenant-logo" style="color: #c0392b;">ST</div>
+                                <div>
+                                    <div class="tenant-name">Standard Chart.</div>
+                                    <div class="tenant-type">Finance</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.85rem;">TL-4491022</td>
+                        <td>2,100 SF</td>
+                        <td style="font-weight: 600;">৳ 84,000</td>
+                        <td><span class="status-badge status-expired">EXPIRED</span></td>
+                        <td><button class="btn-action btn-renew">Renew</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

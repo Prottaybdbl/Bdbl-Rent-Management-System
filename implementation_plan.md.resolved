@@ -1,0 +1,541 @@
+# BDBL Rent Management System - Database Schema Implementation Plan
+
+## ১. প্রকল্পের সংক্ষিপ্ত বিবরণ (Project Overview)
+
+BDBL (বাংলাদেশ ডেভেলপমেন্ট ব্যাংক লিমিটেড)-এর রিয়েল এস্টেট বিভাগের জন্য একটি ওয়েব-ভিত্তিক ভাড়া ব্যবস্থাপনা সিস্টেম তৈরি করা হচ্ছে। বর্তমানে এক্সেল-নির্ভর ম্যানুয়াল পদ্ধতি থেকে এটিকে একটি স্বয়ংক্রিয়, অডিটযোগ্য ডিজিটাল প্ল্যাটফর্মে রূপান্তর করা হবে।
+
+**টেকনোলজি স্ট্যাক:** Spring Boot (Backend) + Thymeleaf/HTML/CSS/JS (Frontend) + MySQL (Database)
+
+---
+
+## ২. চুড়ান্ত রিকোয়ারমেন্ট সারসংক্ষেপ (Final Requirements Summary)
+
+ইউজারের সাথে ১৬টি পয়েন্টে বিস্তারিত আলোচনার ভিত্তিতে চুড়ান্ত নিয়মগুলো:
+
+| # | বিষয় | সিদ্ধান্ত |
+|---|-------|----------|
+| 1 | **স্পেস টাইপ** | শুধুমাত্র অফিস স্পেস। একই কোম্পানি একাধিক ফ্লোর, অর্ধেক বা একাংশ এরিয়া নিতে পারবে |
+| 2 | **পার্কিং** | বিল্ডিংয়ের আলাদা এন্টিটি। Unit-wise বা Area (sft)-wise কনফিগারেবল। মূল এগ্রিমেন্টের অংশ হিসেবে বিল হবে |
+| 3 | **ভাড়া গণনা** | দুই ধরন: (a) Sqft-based → `Area × Rate per sft` (b) Lumpsum → Fixed amount। একই ফ্লোরে উভয় টাইপ থাকতে পারে |
+| 4 | **ফ্লোর এরিয়া বণ্টন** | ফ্লেক্সিবল—ফ্লোরের মোট এরিয়া থেকে প্রয়োজনমতো কেটে বরাদ্দ দেওয়া হবে (ইউনিটে ভাগ করা লাগবে না) |
+| 5 | **ভ্যাট** | নেই |
+| 6 | **ট্যাক্স** | Tenant চালান দিলে ভাড়া থেকে ট্যাক্স বাদ যাবে; অন্যথায় Tenant পুরো ভাড়া দেবে |
+| 7 | **সিকিউরিটি ডিপোজিট / অ্যাডভান্স** | Optional। শেষ মাসে অ্যাডজাস্ট অথবা ফেরত—উভয়ই সম্ভব। অফিসার ম্যানুয়ালি এন্ট্রি দিয়ে অ্যাডজাস্ট করবেন |
+| 8 | **সার্ভিস চার্জ** | Optional, Fixed amount (Lumpsum) |
+| 9 | **ইউটিলিটি বিল** | আলাদা বিল। ম্যানুয়াল এন্ট্রি। ডকুমেন্ট আপলোড (Optional) |
+| 10 | **Prorated বিল** | মাসের মাঝামাঝি শুরু হলে দিন অনুযায়ী আনুপাতিক বিল হবে |
+| 11 | **ভাড়া বৃদ্ধি** | Agreement-এ শর্ত Define করা যাবে (Percentage)। রিনিউয়ের সময় Percentage বা Fixed amount বাড়তে পারে |
+| 12 | **বকেয়া (Arrear)** | আলাদা হিসাব। পেমেন্ট পেলে → Previous Year Arrear আগে কাটবে → তারপর Current Year |
+| 13 | **Late Payment Penalty** | Agreement-এ Define করা যাবে (Optional, Percentage) |
+| 14 | **Rent Waiver** | ম্যানেজমেন্ট অনুমোদন ডকুমেন্ট আপলোড বাধ্যতামূলক। রিপোর্টে ওয়েইভার আমাউন্ট আলাদা দেখাবে |
+| 15 | **পেমেন্ট মেথড** | Cash, Cheque, Bank Transfer, Pay Order। ফাইল আপলোড সাপোর্ট |
+| 16 | **মানি রিসিট** | পেমেন্টের পর Print/PDF অপশন থাকবে |
+| 17 | **Maintenance** | ফ্লোর/ইউনিট "Under Maintenance" হিসেবে ব্লক করা যাবে |
+| 18 | **ডাটা মাইগ্রেশন** | Manual Entry (Bulk Upload লাগবে না) |
+| 19 | **অডিট ট্রেইল** | ১০০% লগ—কে, কখন, কী করেছে সব সংরক্ষিত থাকবে |
+| 20 | **ইউজার রোল** | Super Admin (User management + Password Reset) এবং Officer (বাকি সব কাজ) |
+| 21 | **থিম** | Light + Dark উভয় মোড |
+| 22 | **চুক্তি নবায়ন** | Manual Renew (Auto নয়)। নতুন রেট/শর্ত Optional |
+| 23 | **Integration** | কোর ব্যাংকিংয়ের সাথে ইন্টিগ্রেশনের প্ল্যান নেই |
+| 24 | **রিপোর্ট এক্সপোর্ট** | PDF + Excel উভয় ফরম্যাটে |
+
+---
+
+## ৩. Entity-Relationship ডায়াগ্রাম
+
+```mermaid
+erDiagram
+    buildings ||--o{ floors : "has"
+    buildings ||--o{ parking_spaces : "has"
+    floors ||--o{ floor_allocations : "allocates"
+    tenants ||--o{ tenant_contacts : "has"
+    tenants ||--o{ lease_agreements : "signs"
+    lease_agreements ||--o{ floor_allocations : "includes"
+    lease_agreements ||--o{ agreement_parking : "includes"
+    lease_agreements ||--o{ agreement_documents : "attaches"
+    lease_agreements ||--o{ rent_bills : "generates"
+    lease_agreements ||--o{ rent_waivers : "can have"
+    rent_bills ||--o{ payments : "receives"
+    tenants ||--o{ arrears : "owes"
+    tenants ||--o{ utility_bills : "has"
+    lease_agreements ||--o{ advance_deposits : "may have"
+    users ||--o{ audit_logs : "performs"
+
+    buildings {
+        bigint id PK
+        varchar name
+        varchar code
+        varchar address
+        varchar city
+        int total_floors
+        varchar parking_config_type
+        varchar status
+    }
+    floors {
+        bigint id PK
+        bigint building_id FK
+        varchar floor_number
+        decimal total_area_sft
+        decimal allocated_area_sft
+        varchar status
+    }
+    parking_spaces {
+        bigint id PK
+        bigint building_id FK
+        varchar parking_number
+        varchar parking_type
+        decimal area_sft
+        decimal monthly_rent
+        varchar status
+    }
+    tenants {
+        bigint id PK
+        varchar company_name
+        varchar trade_license_no
+        varchar tin_number
+        varchar phone
+        varchar email
+        varchar status
+    }
+    lease_agreements {
+        bigint id PK
+        bigint tenant_id FK
+        bigint building_id FK
+        varchar agreement_number
+        date start_date
+        date end_date
+        varchar rent_type
+        decimal service_charge
+        decimal total_monthly_rent
+        varchar penalty_type
+        decimal penalty_percentage
+        varchar status
+    }
+    floor_allocations {
+        bigint id PK
+        bigint agreement_id FK
+        bigint floor_id FK
+        decimal area_sft
+        varchar rent_type
+        decimal rent_per_sft
+        decimal lumpsum_rent
+        decimal monthly_rent
+    }
+    rent_bills {
+        bigint id PK
+        bigint agreement_id FK
+        bigint tenant_id FK
+        date billing_month
+        int billing_days
+        decimal base_rent
+        decimal service_charge
+        decimal parking_charge
+        decimal penalty_amount
+        decimal tax_adjustment
+        decimal waiver_amount
+        decimal total_payable
+        varchar status
+    }
+    payments {
+        bigint id PK
+        bigint tenant_id FK
+        bigint rent_bill_id FK
+        decimal amount
+        varchar payment_method
+        varchar reference_no
+        date payment_date
+        varchar document_path
+    }
+    arrears {
+        bigint id PK
+        bigint tenant_id FK
+        bigint agreement_id FK
+        int financial_year
+        decimal original_amount
+        decimal outstanding_amount
+        varchar status
+    }
+    advance_deposits {
+        bigint id PK
+        bigint agreement_id FK
+        varchar deposit_type
+        decimal original_amount
+        decimal remaining_amount
+        varchar status
+    }
+    rent_waivers {
+        bigint id PK
+        bigint agreement_id FK
+        date waiver_month
+        decimal waiver_amount
+        varchar approval_doc_path
+        varchar reason
+    }
+    users {
+        bigint id PK
+        varchar username
+        varchar password_hash
+        varchar full_name
+        varchar role
+        varchar status
+    }
+    audit_logs {
+        bigint id PK
+        bigint user_id FK
+        varchar action_type
+        varchar table_name
+        bigint record_id
+        text old_values
+        text new_values
+        varchar ip_address
+        timestamp created_at
+    }
+```
+
+---
+
+## ৪. টেবিল বিবরণ (Table Descriptions)
+
+### ৪.১ buildings – বিল্ডিং মাস্টার
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK AUTO_INCREMENT | প্রাইমারি কি |
+| name | VARCHAR(255) NOT NULL | বিল্ডিংয়ের নাম (যেমন: Karwan Bazar Branch) |
+| code | VARCHAR(50) UNIQUE | শর্ট কোড (যেমন: KWB) |
+| address | TEXT | সম্পূর্ণ ঠিকানা |
+| city | VARCHAR(100) | শহর |
+| district | VARCHAR(100) | জেলা |
+| total_floors | INT | মোট ফ্লোর সংখ্যা |
+| total_area_sft | DECIMAL(12,2) | মোট এরিয়া (SFT) |
+| construction_year | INT | নির্মাণ সাল |
+| parking_config_type | VARCHAR(20) | পার্কিং কনফিগারেশন: `UNIT_WISE` বা `AREA_WISE` |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `ACTIVE`, `INACTIVE`, `UNDER_MAINTENANCE` |
+| created_at | TIMESTAMP | তৈরির সময় |
+| updated_at | TIMESTAMP | সর্বশেষ আপডেটের সময় |
+| created_by | BIGINT FK | কে তৈরি করেছেন |
+
+### ৪.২ floors – ফ্লোর
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | প্রাইমারি কি |
+| building_id | BIGINT FK → buildings | কোন বিল্ডিংয়ের অন্তর্গত |
+| floor_number | VARCHAR(50) | ফ্লোর নাম্বার: G, 1, 2, ..., Roof |
+| floor_name | VARCHAR(255) | ফ্লোরের নাম (Optional) |
+| total_area_sft | DECIMAL(12,2) | মোট এরিয়া |
+| allocated_area_sft | DECIMAL(12,2) DEFAULT 0 | বর্তমানে ভাড়ায় বরাদ্দকৃত এরিয়া (Calculated) |
+| common_area_sft | DECIMAL(12,2) | কমন এরিয়া |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `ACTIVE`, `UNDER_MAINTENANCE` |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+
+> **বিজনেস লজিক:** `available_area = total_area_sft - allocated_area_sft`। নতুন এগ্রিমেন্ট করার সময় সিস্টেম চেক করবে যে, দেওয়া এরিয়া available area-এর বেশি কিনা।
+
+### ৪.৩ parking_spaces – পার্কিং
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| building_id | BIGINT FK → buildings | কোন বিল্ডিংয়ের পার্কিং |
+| parking_number | VARCHAR(100) | পার্কিং নাম্বার/আইডি |
+| parking_type | VARCHAR(50) | `CAR`, `BIKE`, `HEAVY_VEHICLE` |
+| location | VARCHAR(255) | অবস্থান (Basement-1, Basement-2 ইত্যাদি) |
+| area_sft | DECIMAL(12,2) | এরিয়া (Area-wise কনফিগারেশনের জন্য) |
+| monthly_rent | DECIMAL(12,2) | মাসিক ভাড়া (Unit-wise এর জন্য) |
+| status | VARCHAR(20) DEFAULT 'VACANT' | `VACANT`, `OCCUPIED`, `RESERVED` |
+| created_at | TIMESTAMP | |
+
+### ৪.৪ tenants – ভাড়াটিয়া/কোম্পানি
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| tenant_code | VARCHAR(50) UNIQUE | অটো-জেনারেটেড কোড |
+| company_name | VARCHAR(255) NOT NULL | কোম্পানির নাম |
+| business_type | VARCHAR(100) | ব্যবসার ধরন |
+| trade_license_no | VARCHAR(100) | ট্রেড লাইসেন্স নাম্বার |
+| tin_number | VARCHAR(100) | TIN নাম্বার |
+| registration_address | TEXT | নিবন্ধিত ঠিকানা |
+| contact_address | TEXT | যোগাযোগের ঠিকানা |
+| phone_primary | VARCHAR(20) | প্রধান ফোন নাম্বার |
+| phone_secondary | VARCHAR(20) | বিকল্প ফোন |
+| email | VARCHAR(255) | ইমেইল |
+| logo_path | VARCHAR(500) | লোগো ফাইল পাথ |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `ACTIVE`, `INACTIVE` |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+
+### ৪.৫ tenant_contacts – কন্ট্যাক্ট পার্সন
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| tenant_id | BIGINT FK → tenants | কোন ভাড়াটিয়ার কন্ট্যাক্ট |
+| contact_name | VARCHAR(255) | নাম |
+| designation | VARCHAR(100) | পদবি |
+| phone | VARCHAR(20) | ফোন |
+| email | VARCHAR(255) | ইমেইল |
+| is_primary | BOOLEAN DEFAULT FALSE | প্রধান যোগাযোগকারী কিনা |
+
+### ৪.৬ lease_agreements – লিজ এগ্রিমেন্ট (চুক্তি)
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_number | VARCHAR(100) UNIQUE | অটো-জেনারেটেড (যেমন: AGR-KWB-2026-001) |
+| tenant_id | BIGINT FK → tenants | ভাড়াটিয়া |
+| building_id | BIGINT FK → buildings | বিল্ডিং |
+| agreement_type | VARCHAR(20) | `NEW`, `RENEWAL` |
+| parent_agreement_id | BIGINT FK → lease_agreements | রিনিউয়ালের ক্ষেত্রে পূর্ববর্তী চুক্তির রেফারেন্স |
+| start_date | DATE NOT NULL | চুক্তি শুরুর তারিখ |
+| end_date | DATE NOT NULL | চুক্তি শেষের তারিখ |
+| duration_months | INT | মেয়াদ (মাসে) |
+| controlled_by | VARCHAR(100) | কার নিয়ন্ত্রণে: `BDBL` বা `OTHER` |
+| service_charge | DECIMAL(12,2) DEFAULT 0 | ফিক্সড সার্ভিস চার্জ (Monthly Lumpsum) |
+| total_monthly_rent | DECIMAL(12,2) | মোট মাসিক ভাড়া (Base + Service + Parking) |
+| has_security_deposit | BOOLEAN DEFAULT FALSE | সিকিউরিটি ডিপোজিট আছে কিনা |
+| has_advance_payment | BOOLEAN DEFAULT FALSE | অ্যাডভান্স পেমেন্ট আছে কিনা |
+| has_penalty | BOOLEAN DEFAULT FALSE | বিলম্ব জরিমানা আছে কিনা |
+| penalty_percentage | DECIMAL(5,2) | জরিমানার শতাংশ |
+| has_annual_increment | BOOLEAN DEFAULT FALSE | বার্ষিক ভাড়া বৃদ্ধি আছে কিনা |
+| increment_percentage | DECIMAL(5,2) | বৃদ্ধির শতাংশ |
+| increment_period_months | INT | কত মাস পর পর বৃদ্ধি |
+| notice_period_days | INT DEFAULT 60 | নোটিশ পিরিয়ড (দিন) |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `DRAFT`, `ACTIVE`, `EXPIRED`, `TERMINATED`, `RENEWED` |
+| notes | TEXT | মন্তব্য |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+| created_by | BIGINT FK | |
+
+### ৪.৭ floor_allocations – ফ্লোর বরাদ্দ (এগ্রিমেন্ট-ফ্লোর সম্পর্ক)
+> **গুরুত্বপূর্ণ:** এই টেবিলটি পূর্বের "agreement_units" এর বদলে ব্যবহৃত হবে, কারণ ইউজার জানিয়েছেন যে ফ্লোর থেকে সরাসরি এরিয়া কেটে বরাদ্দ দেওয়া হবে। আলাদা ইউনিট তৈরি করতে হবে না।
+
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_id | BIGINT FK → lease_agreements | কোন চুক্তির জন্য |
+| floor_id | BIGINT FK → floors | কোন ফ্লোর থেকে |
+| allocation_label | VARCHAR(255) | বরাদ্দের বিবরণ (যেমন: Level-1, Ramp/Roof Top) |
+| area_sft | DECIMAL(12,2) | বরাদ্দকৃত এরিয়া |
+| rent_type | VARCHAR(20) | `SQFT_BASED` বা `LUMPSUM` |
+| rent_per_sft | DECIMAL(10,2) | প্রতি Sqft ভাড়া (SQFT ভিত্তিক হলে) |
+| lumpsum_rent | DECIMAL(12,2) | ফিক্সড মাসিক ভাড়া (Lumpsum হলে) |
+| monthly_rent | DECIMAL(12,2) | চুড়ান্ত মাসিক ভাড়া (Calculated বা Lumpsum) |
+| created_at | TIMESTAMP | |
+
+> **ক্যালকুলেশন:** `rent_type = SQFT_BASED` হলে `monthly_rent = area_sft × rent_per_sft`। `rent_type = LUMPSUM` হলে `monthly_rent = lumpsum_rent`।
+
+### ৪.৮ agreement_parking – চুক্তিতে অন্তর্ভুক্ত পার্কিং
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| parking_id | BIGINT FK → parking_spaces | |
+| monthly_rent | DECIMAL(12,2) | এই পার্কিংয়ের মাসিক ভাড়া |
+| created_at | TIMESTAMP | |
+
+### ৪.৯ agreement_documents – চুক্তির ডকুমেন্ট
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| document_type | VARCHAR(50) | `AGREEMENT`, `ANNEXURE`, `APPROVAL`, `OTHER` |
+| document_name | VARCHAR(255) | ফাইলের নাম |
+| file_path | VARCHAR(500) | সার্ভারে ফাইলের পাথ |
+| uploaded_at | TIMESTAMP | |
+| uploaded_by | BIGINT FK | |
+
+### ৪.১০ advance_deposits – অ্যাডভান্স/সিকিউরিটি ডিপোজিট
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| deposit_type | VARCHAR(30) | `SECURITY_DEPOSIT` বা `ADVANCE_PAYMENT` |
+| original_amount | DECIMAL(12,2) | মূল জমার পরিমাণ |
+| remaining_amount | DECIMAL(12,2) | বর্তমান অবশিষ্ট |
+| received_date | DATE | কখন জমা নেওয়া হয়েছে |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `ACTIVE`, `ADJUSTED`, `REFUNDED` |
+| notes | TEXT | |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+
+> **লজিক:** অফিসার ম্যানুয়ালি "Adjust" বা "Refund" হিসেবে মার্ক করবেন। Adjust করলে `remaining_amount` কমবে, Refund হলে status `REFUNDED` হবে।
+
+### ৪.১১ rent_bills – মাসিক ভাড়ার বিল
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| bill_number | VARCHAR(100) UNIQUE | অটো-জেনারেটেড বিল নাম্বার |
+| agreement_id | BIGINT FK → lease_agreements | |
+| tenant_id | BIGINT FK → tenants | |
+| billing_month | DATE | বিলিং মাস (মাসের ১ তারিখ) |
+| billing_days | INT DEFAULT 30 | এই মাসে কত দিনের বিল (Prorated-এর জন্য) |
+| total_days_in_month | INT DEFAULT 30 | মাসের মোট দিন |
+| base_rent | DECIMAL(12,2) | মূল ভাড়া |
+| service_charge | DECIMAL(12,2) DEFAULT 0 | সার্ভিস চার্জ |
+| parking_charge | DECIMAL(12,2) DEFAULT 0 | পার্কিং চার্জ |
+| penalty_amount | DECIMAL(12,2) DEFAULT 0 | বিলম্ব জরিমানা |
+| tax_adjustment | DECIMAL(12,2) DEFAULT 0 | ট্যাক্স অ্যাডজাস্টমেন্ট (Tenant চালান দিলে এটি বাদ যাবে) |
+| waiver_amount | DECIMAL(12,2) DEFAULT 0 | ওয়েইভার/মওকুফ |
+| total_payable | DECIMAL(12,2) | চুড়ান্ত প্রদেয় `= base_rent + service + parking + penalty - tax_adj - waiver` |
+| paid_amount | DECIMAL(12,2) DEFAULT 0 | মোট পরিশোধিত |
+| outstanding_amount | DECIMAL(12,2) | বকেয়া `= total_payable - paid_amount` |
+| due_date | DATE | পরিশোধের শেষ তারিখ |
+| status | VARCHAR(20) DEFAULT 'GENERATED' | `GENERATED`, `PARTIALLY_PAID`, `PAID`, `OVERDUE` |
+| generated_at | TIMESTAMP | |
+| generated_by | BIGINT FK | |
+
+> **Prorated Logic:** প্রথম মাসে `billing_days < total_days_in_month` হলে: `base_rent = (full_monthly_rent / total_days_in_month) × billing_days`
+
+### ৪.১২ payments – পেমেন্ট
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| payment_number | VARCHAR(100) UNIQUE | অটো-জেনারেটেড রিসিট নাম্বার |
+| tenant_id | BIGINT FK → tenants | |
+| rent_bill_id | BIGINT FK → rent_bills (Nullable) | কোন বিলের বিরুদ্ধে (Arrear পেমেন্টে NULL হতে পারে) |
+| arrear_id | BIGINT FK → arrears (Nullable) | বকেয়া পেমেন্ট হলে |
+| advance_deposit_id | BIGINT FK → advance_deposits (Nullable) | অ্যাডভান্স অ্যাডজাস্টমেন্ট হলে |
+| amount | DECIMAL(12,2) NOT NULL | পরিশোধিত পরিমাণ |
+| payment_method | VARCHAR(30) | `CASH`, `CHEQUE`, `BANK_TRANSFER`, `PAY_ORDER` |
+| cheque_number | VARCHAR(100) | চেক নাম্বার |
+| cheque_date | DATE | চেক তারিখ |
+| bank_name | VARCHAR(255) | ব্যাংকের নাম |
+| transaction_ref | VARCHAR(255) | ট্রান্সফার রেফারেন্স |
+| payment_date | DATE NOT NULL | পেমেন্টের তারিখ |
+| document_path | VARCHAR(500) | আপলোড করা ডকুমেন্টের পাথ |
+| notes | TEXT | |
+| status | VARCHAR(20) DEFAULT 'COMPLETED' | `COMPLETED`, `BOUNCED`, `CANCELLED` |
+| created_at | TIMESTAMP | |
+| created_by | BIGINT FK | |
+
+### ৪.১৩ arrears – বকেয়া
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| tenant_id | BIGINT FK → tenants | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| financial_year | INT | আর্থিক বছর (যেমন: 2024, 2025, 2026) |
+| original_amount | DECIMAL(12,2) | মূল বকেয়া পরিমাণ |
+| outstanding_amount | DECIMAL(12,2) | বর্তমান অবশিষ্ট বকেয়া |
+| status | VARCHAR(20) DEFAULT 'OUTSTANDING' | `OUTSTANDING`, `PARTIALLY_PAID`, `CLEARED` |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+
+> **পেমেন্ট সিকোয়েন্স:** পেমেন্ট পেলে → (1) Previous year arrear (oldest first) → (2) Current year arrear → (3) Current month bill
+
+### ৪.১৪ rent_waivers – ভাড়া মওকুফ
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| tenant_id | BIGINT FK → tenants | |
+| waiver_month | DATE | কোন মাসের ওয়েইভার |
+| waiver_amount | DECIMAL(12,2) | মওকুফের পরিমাণ |
+| reason | TEXT | কারণ |
+| approval_doc_path | VARCHAR(500) NOT NULL | অনুমোদন ডকুমেন্ট (বাধ্যতামূলক) |
+| approved_by | VARCHAR(255) | অনুমোদনকারী |
+| created_at | TIMESTAMP | |
+| created_by | BIGINT FK | |
+
+### ৪.১৫ utility_bills – ইউটিলিটি বিল
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| tenant_id | BIGINT FK → tenants | |
+| agreement_id | BIGINT FK → lease_agreements | |
+| utility_type | VARCHAR(50) | `ELECTRICITY`, `WATER`, `GAS`, `INTERNET` |
+| billing_month | DATE | বিলিং মাস |
+| amount | DECIMAL(12,2) | বিলের পরিমাণ |
+| document_path | VARCHAR(500) | আপলোড করা বিলের কপি |
+| status | VARCHAR(20) DEFAULT 'PENDING' | `PENDING`, `PAID` |
+| notes | TEXT | |
+| created_at | TIMESTAMP | |
+
+### ৪.১৬ users – ব্যবহারকারী
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| username | VARCHAR(100) UNIQUE NOT NULL | |
+| password_hash | VARCHAR(255) NOT NULL | BCrypt এনক্রিপ্টেড |
+| full_name | VARCHAR(255) | পূর্ণ নাম |
+| email | VARCHAR(255) | ইমেইল |
+| phone | VARCHAR(20) | ফোন |
+| role | VARCHAR(20) | `SUPER_ADMIN` বা `OFFICER` |
+| status | VARCHAR(20) DEFAULT 'ACTIVE' | `ACTIVE`, `INACTIVE` |
+| last_login | TIMESTAMP | সর্বশেষ লগইনের সময় |
+| created_at | TIMESTAMP | |
+| created_by | BIGINT FK | |
+
+### ৪.১৭ audit_logs – অডিট লগ
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| user_id | BIGINT FK → users | |
+| action_type | VARCHAR(50) | `CREATE`, `UPDATE`, `DELETE`, `LOGIN`, `LOGOUT` |
+| table_name | VARCHAR(100) | কোন টেবিলে পরিবর্তন হয়েছে |
+| record_id | BIGINT | কোন রেকর্ডে পরিবর্তন |
+| old_values | TEXT (JSON) | আগের মান |
+| new_values | TEXT (JSON) | নতুন মান |
+| ip_address | VARCHAR(50) | আইপি অ্যাড্রেস |
+| created_at | TIMESTAMP DEFAULT NOW() | |
+
+### ৪.১৮ system_settings – সিস্টেম সেটিংস
+| কলাম | টাইপ | বিবরণ |
+|-------|------|-------|
+| id | BIGINT PK | |
+| setting_key | VARCHAR(100) UNIQUE | সেটিংসের কি (যেমন: `default_theme`) |
+| setting_value | TEXT | মান |
+| description | TEXT | বিবরণ |
+| updated_at | TIMESTAMP | |
+
+---
+
+## ৫. বিজনেস লজিক সারাংশ (Key Business Logic)
+
+### ৫.১ ভাড়ার বিল ক্যালকুলেশন
+```
+monthly_base_rent = SUM(floor_allocations.monthly_rent)  // সকল ফ্লোরের ভাড়া যোগ
+parking_charge = SUM(agreement_parking.monthly_rent)      // পার্কিং ভাড়া
+service_charge = lease_agreements.service_charge          // ফিক্সড সার্ভিস চার্জ
+
+// Prorated (প্রথম/শেষ মাসের জন্য)
+IF billing_days < total_days_in_month THEN
+    base_rent = (monthly_base_rent / total_days_in_month) × billing_days
+    service_charge = (service_charge / total_days_in_month) × billing_days
+
+total_payable = base_rent + service_charge + parking_charge + penalty - tax_adjustment - waiver
+```
+
+### ৫.২ বকেয়া কাটার সিকোয়েন্স
+```
+ON payment_received(tenant, amount):
+    1. Find oldest arrear (lowest financial_year) for tenant
+    2. If arrear exists → Deduct from arrear.outstanding_amount
+    3. If amount remaining → Move to next year's arrear
+    4. If all arrears cleared → Apply to current month's bill
+```
+
+### ৫.৩ ট্যাক্স অ্যাডজাস্টমেন্ট
+```
+IF tenant submits tax challan:
+    bill.tax_adjustment = challan_amount
+    bill.total_payable = bill.total_payable - tax_adjustment
+    // Tenant pays less
+ELSE:
+    // Tenant pays full rent, BDBL pays tax manually
+```
+
+---
+
+## ৬. Verification Plan
+
+### ৬.১ ডাটাবেজ ভেরিফিকেশন
+MySQL DDL স্ক্রিপ্ট তৈরির পর নিচের কমান্ড দিয়ে ভেরিফাই করা হবে:
+```bash
+mysql -u root -p < schema.sql
+# তারপর সব টেবিল তৈরি হয়েছে কিনা চেক:
+mysql -u root -p -e "USE bdbl_rms; SHOW TABLES;"
+```
+
+### ৬.২ Spring Boot Entity ভেরিফিকেশন
+Spring Boot অ্যাপ্লিকেশন চালু করে `spring.jpa.hibernate.ddl-auto=validate` দিয়ে DDL সঠিক কিনা ভেরিফাই করা হবে।
+
+### ৬.৩ Manual Testing
+- ইউজারকে DDL স্ক্রিপ্ট এবং ER ডায়াগ্রাম রিভিউ করতে দেওয়া হবে
+- Spring Boot অ্যাপ চালু হওয়ার পর MySQL-এ সব টেবিল সঠিকভাবে তৈরি হয়েছে কিনা তা `SHOW TABLES` এবং `DESCRIBE <table>` কমান্ড দিয়ে চেক করা হবে
