@@ -12,6 +12,7 @@ public class LeaseAgreementDTO {
     private String tenantCompanyName; // Display
     private Long buildingId;
     private String buildingName; // Display
+    private String agreementType; // NEW/RENEWAL
     private Long floorId;
     private String floorNumber; // Display
     private BigDecimal agreementAreaSft;
@@ -19,11 +20,17 @@ public class LeaseAgreementDTO {
     private LocalDate endDate;
     private Integer durationMonths;
     private BigDecimal rentPerSft;
+    private BigDecimal baseRentRatePerSft;
+    private BigDecimal baseMonthlyRent;
     private BigDecimal totalMonthlyRent;
     private BigDecimal serviceChargeAmount;
+    private BigDecimal serviceCharge;
     private BigDecimal vatPercentage;
+    private BigDecimal vatPercent;
     private BigDecimal taxPercentage;
+    private BigDecimal taxPercent;
     private BigDecimal advanceDepositAmount;
+    private BigDecimal advanceAmount;
     private BigDecimal securityDepositAmount;
     private Integer rentEscalationPercentage;
     private Integer escalationFrequencyMonths;
@@ -34,6 +41,7 @@ public class LeaseAgreementDTO {
     private LocalDate agreementDate;
     private String cancellationNoticePeriod;
     private String status;
+    private String remarks;
     private LocalDateTime createdAt;
     private Long createdById;
 
@@ -86,6 +94,14 @@ public class LeaseAgreementDTO {
 
     public void setBuildingName(String buildingName) {
         this.buildingName = buildingName;
+    }
+
+    public String getAgreementType() {
+        return agreementType;
+    }
+
+    public void setAgreementType(String agreementType) {
+        this.agreementType = agreementType;
     }
 
     public Long getFloorId() {
@@ -144,6 +160,22 @@ public class LeaseAgreementDTO {
         this.rentPerSft = rentPerSft;
     }
 
+    public BigDecimal getBaseRentRatePerSft() {
+        return baseRentRatePerSft;
+    }
+
+    public void setBaseRentRatePerSft(BigDecimal baseRentRatePerSft) {
+        this.baseRentRatePerSft = baseRentRatePerSft;
+    }
+
+    public BigDecimal getBaseMonthlyRent() {
+        return baseMonthlyRent;
+    }
+
+    public void setBaseMonthlyRent(BigDecimal baseMonthlyRent) {
+        this.baseMonthlyRent = baseMonthlyRent;
+    }
+
     public BigDecimal getTotalMonthlyRent() {
         return totalMonthlyRent;
     }
@@ -160,12 +192,28 @@ public class LeaseAgreementDTO {
         this.serviceChargeAmount = serviceChargeAmount;
     }
 
+    public BigDecimal getServiceCharge() {
+        return serviceCharge;
+    }
+
+    public void setServiceCharge(BigDecimal serviceCharge) {
+        this.serviceCharge = serviceCharge;
+    }
+
     public BigDecimal getVatPercentage() {
         return vatPercentage;
     }
 
     public void setVatPercentage(BigDecimal vatPercentage) {
         this.vatPercentage = vatPercentage;
+    }
+
+    public BigDecimal getVatPercent() {
+        return vatPercent;
+    }
+
+    public void setVatPercent(BigDecimal vatPercent) {
+        this.vatPercent = vatPercent;
     }
 
     public BigDecimal getTaxPercentage() {
@@ -176,12 +224,28 @@ public class LeaseAgreementDTO {
         this.taxPercentage = taxPercentage;
     }
 
+    public BigDecimal getTaxPercent() {
+        return taxPercent;
+    }
+
+    public void setTaxPercent(BigDecimal taxPercent) {
+        this.taxPercent = taxPercent;
+    }
+
     public BigDecimal getAdvanceDepositAmount() {
         return advanceDepositAmount;
     }
 
     public void setAdvanceDepositAmount(BigDecimal advanceDepositAmount) {
         this.advanceDepositAmount = advanceDepositAmount;
+    }
+
+    public BigDecimal getAdvanceAmount() {
+        return advanceAmount;
+    }
+
+    public void setAdvanceAmount(BigDecimal advanceAmount) {
+        this.advanceAmount = advanceAmount;
     }
 
     public BigDecimal getSecurityDepositAmount() {
@@ -262,6 +326,14 @@ public class LeaseAgreementDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -20,5 +20,7 @@ public interface RentBillRepository extends JpaRepository<RentBill, Long> {
 
     boolean existsByBillNumber(String billNumber);
 
+    boolean existsByAgreementIdAndBillingYearAndBillingMonth(Long agreementId, Integer billingYear, String billingMonth);
+
     List<RentBill> findByStatus(String status);
 }

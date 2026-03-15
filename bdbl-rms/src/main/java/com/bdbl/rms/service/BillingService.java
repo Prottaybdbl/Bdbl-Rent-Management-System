@@ -19,14 +19,22 @@ public interface BillingService {
 
     List<RentBillDTO> getRentBillsByAgreement(Long agreementId);
 
+    List<RentBillDTO> getAllRentBills();
+
+    void generateMonthlyRentBills(int year, String month);
+
     // === Payment Operations ===
     PaymentDTO processPayment(PaymentDTO dto);
+
+    PaymentDTO recordPayment(PaymentDTO dto);
 
     PaymentDTO getPaymentById(Long id);
 
     List<PaymentDTO> getPaymentsByTenant(Long tenantId);
 
     List<PaymentDTO> getPaymentsByBill(Long billId);
+
+    List<PaymentDTO> getAllPayments();
 
     // === Arrear Operations ===
     ArrearDTO createArrear(ArrearDTO dto);

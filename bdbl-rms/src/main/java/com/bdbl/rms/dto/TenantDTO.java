@@ -13,6 +13,7 @@ public class TenantDTO {
     private String tinNumber;
     private String registrationAddress;
     private String contactAddress;
+    private String officeAddress; // Added to match template
     private String phonePrimary;
     private String phoneSecondary;
     private String email;
@@ -88,6 +89,14 @@ public class TenantDTO {
 
     public void setContactAddress(String contactAddress) {
         this.contactAddress = contactAddress;
+    }
+
+    public String getOfficeAddress() {
+        return officeAddress;
+    }
+
+    public void setOfficeAddress(String officeAddress) {
+        this.officeAddress = officeAddress;
     }
 
     public String getPhonePrimary() {

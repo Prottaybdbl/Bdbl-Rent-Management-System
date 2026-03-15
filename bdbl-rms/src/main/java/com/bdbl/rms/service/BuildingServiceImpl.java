@@ -47,6 +47,9 @@ public class BuildingServiceImpl implements BuildingService {
             throw new IllegalArgumentException("Building code already exists: " + dto.getCode());
         }
 
+        // Input totalAreaSft is treated as Area per Floor as per user request
+        BigDecimal areaPerFloor = dto.getTotalAreaSft() != null ? dto.getTotalAreaSft() : BigDecimal.ZERO;
+
         Building building = Building.builder()
                 .name(dto.getName())
                 .code(dto.getCode())
@@ -54,13 +57,28 @@ public class BuildingServiceImpl implements BuildingService {
                 .city(dto.getCity())
                 .district(dto.getDistrict())
                 .totalFloors(dto.getTotalFloors())
-                .totalAreaSft(dto.getTotalAreaSft())
+                .totalAreaSft(areaPerFloor) // Storing per-floor area as requested
                 .constructionYear(dto.getConstructionYear())
                 .parkingConfigType(dto.getParkingConfigType())
                 .status("ACTIVE")
                 .build();
 
         Building savedBuilding = buildingRepository.save(building);
+
+        // Auto-generate floors
+        if (dto.getTotalFloors() != null && dto.getTotalFloors() > 0) {
+            for (int i = 1; i <= dto.getTotalFloors(); i++) {
+                Floor floor = Floor.builder()
+                        .building(savedBuilding)
+                        .floorNumber(String.valueOf(i))
+                        .floorName("Floor " + i)
+                        .totalAreaSft(areaPerFloor)
+                        .status("ACTIVE")
+                        .build();
+                floorRepository.save(floor);
+            }
+        }
+
         return mapToBuildingDTO(savedBuilding);
     }
 
@@ -185,12 +203,31 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     public List<FloorDTO> getFloorsByBuildingId(Long buildingId) {
-        // Verify building exists
-        if (!buildingRepository.existsById(buildingId)) {
-            throw new IllegalArgumentException("Building not found with ID: " + buildingId);
+        Building building = buildingRepository.findById(buildingId)
+                .orElseThrow(() -> new IllegalArgumentException("Building not found with ID: " + buildingId));
+
+        List<Floor> floors = floorRepository.findByBuildingIdOrderByFloorNumberAsc(buildingId);
+
+        // Lazy sync: If building claims to have floors but none exist in DB, generate
+        // them
+        if (floors.isEmpty() && building.getTotalFloors() != null && building.getTotalFloors() > 0) {
+            log.info("Lazy generating {} floors for building ID: {}", building.getTotalFloors(), buildingId);
+            BigDecimal areaPerFloor = building.getTotalAreaSft() != null ? building.getTotalAreaSft() : BigDecimal.ZERO;
+            for (int i = 1; i <= building.getTotalFloors(); i++) {
+                Floor floor = Floor.builder()
+                        .building(building)
+                        .floorNumber(String.valueOf(i))
+                        .floorName("Floor " + i)
+                        .totalAreaSft(areaPerFloor)
+                        .status("ACTIVE")
+                        .build();
+                floorRepository.save(floor);
+            }
+            // Fetch again after generation
+            floors = floorRepository.findByBuildingIdOrderByFloorNumberAsc(buildingId);
         }
 
-        return floorRepository.findByBuildingIdOrderByFloorNumberAsc(buildingId).stream()
+        return floors.stream()
                 .map(this::mapToFloorDTO)
                 .collect(Collectors.toList());
     }

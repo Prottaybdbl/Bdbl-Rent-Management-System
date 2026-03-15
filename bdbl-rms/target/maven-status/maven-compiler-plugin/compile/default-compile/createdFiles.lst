@@ -46,6 +46,7 @@ com\bdbl\rms\entity\AuditLog$AuditLogBuilder.class
 com\bdbl\rms\repository\RentBillRepository.class
 com\bdbl\rms\repository\BuildingRepository.class
 com\bdbl\rms\entity\LeaseAgreement.class
+com\bdbl\rms\controller\PaymentController.class
 com\bdbl\rms\dto\AgreementParkingDTO.class
 com\bdbl\rms\controller\WebController.class
 com\bdbl\rms\repository\AdvanceDepositRepository.class
@@ -54,6 +55,7 @@ com\bdbl\rms\dto\BuildingDTO.class
 com\bdbl\rms\dto\FloorAllocationDTO.class
 com\bdbl\rms\controller\AgreementController.class
 com\bdbl\rms\entity\Floor$FloorBuilder.class
+com\bdbl\rms\service\DashboardService.class
 com\bdbl\rms\repository\TenantContactRepository.class
 com\bdbl\rms\controller\SystemController.class
 com\bdbl\rms\controller\TenantController.class

@@ -296,24 +296,51 @@
             <p class="subtitle">Manage rent bills and utility readings for all properties.</p>
         </header>
 
+        <div th:if="${successMessage}"
+            style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #10b981;">
+            <span th:text="${successMessage}">Success!</span>
+        </div>
+        <div th:if="${errorMessage}"
+            style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #ef4444;">
+            <span th:text="${errorMessage}">Error!</span>
+        </div>
+
         <div class="billing-grid">
             <!-- Quick Bill Generation -->
-            <div class="billing-card">
+            <form class="billing-card" th:action="@{/billing/generate}" method="POST">
                 <h3>Quick Bill Generation</h3>
-                <div class="form-group">
-                    <label>Billing Month</label>
-                    <input type="month" value="2026-02">
+                <div class="form-group" style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+                    <div>
+                        <label>Billing Month</label>
+                        <select name="month" required>
+                            <option value="01">January</option>
+                            <option value="02">February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Year</label>
+                        <input type="number" name="year" th:value="${currentYear}" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Target Building</label>
-                    <select>
-                        <option>Karwan Bazar Branch</option>
-                        <option>BDBL Head Office</option>
-                        <option>Agrabad Branch</option>
+                    <label>Target Building (Optional)</label>
+                    <select name="buildingId">
+                        <option value="">All Buildings</option>
+                        <!-- We could populate buildings here if needed -->
                     </select>
                 </div>
-                <button class="btn btn-generate">Generate All Rent Bills</button>
-            </div>
+                <button type="submit" class="btn btn-generate">Generate All Rent Bills</button>
+            </form>
 
             <!-- Utility Reading Status -->
             <div class="billing-card">
@@ -358,21 +385,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><span class="bill-id">#RB-2026-001</span></td>
-                        <td>Samsung Electronics</td>
-                        <td>Rent Bill</td>
-                        <td style="font-weight: 600;">৳ 85,000</td>
-                        <td><span class="badge badge-paid">PAID</span></td>
-                        <td>10 Feb 2026</td>
+                    <tr th:if="${#lists.isEmpty(bills)}">
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No bills generated yet.
+                        </td>
                     </tr>
-                    <tr>
-                        <td><span class="bill-id">#UB-2026-042</span></td>
-                        <td>Samsung Electronics</td>
-                        <td>Electricity</td>
-                        <td style="font-weight: 600;">৳ 4,250</td>
-                        <td><span class="badge badge-pending">PENDING</span></td>
-                        <td>15 Feb 2026</td>
+                    <tr th:each="bill : ${bills}">
+                        <td><span class="bill-id" th:text="${'#' + bill.billNumber}">#RB-2026-001</span></td>
+                        <td th:text="${bill.tenantCompanyName}">Tenant Company Name</td>
+                        <td>Rent Bill</td>
+                        <td style="font-weight: 600;"
+                            th:text="${bill.totalPayable != null ? '৳ ' + #numbers.formatDecimal(bill.totalPayable, 0, 'COMMA', 2, 'POINT') : '৳ 0'}">
+                            ৳ 0</td>
+                        <td>
+                            <span th:if="${bill.status == 'PAID'}" class="badge badge-paid">PAID</span>
+                            <span th:if="${bill.status != 'PAID'}" class="badge badge-pending"
+                                th:text="${bill.status}">PENDING</span>
+                        </td>
+                        <td th:text="${#temporals.format(bill.dueDate, 'dd MMM yyyy')}">10 Feb 2026</td>
                     </tr>
                 </tbody>
             </table>

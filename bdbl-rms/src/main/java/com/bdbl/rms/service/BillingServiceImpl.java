@@ -144,63 +144,87 @@ public class BillingServiceImpl implements BillingService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<RentBillDTO> getAllRentBills() {
+        return rentBillRepository.findAll().stream().map(this::mapToRentBillDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void generateMonthlyRentBills(int year, String month) {
+        log.info("Generating all rent bills for {}/{}", month, year);
+        
+        List<LeaseAgreement> activeAgreements = leaseAgreementRepository.findByStatus("ACTIVE");
+        
+        for (LeaseAgreement agreement : activeAgreements) {
+            // Check if bill already exists
+            if (rentBillRepository.existsByAgreementIdAndBillingYearAndBillingMonth(agreement.getId(), year, month)) {
+                log.warn("Bill already exists for agreement {} and period {}/{}", agreement.getAgreementNumber(), month, year);
+                continue;
+            }
+
+            RentBill bill = RentBill.builder()
+                    .billNumber(String.format("RB-%d-%s-%04d", year, month, agreement.getId()))
+                    .tenant(agreement.getTenant())
+                    .agreement(agreement)
+                    .billingYear(year)
+                    .billingMonth(month)
+                    .billingDays(30)
+                    .totalDaysInMonth(30)
+                    .baseRent(agreement.getTotalMonthlyRent()) // Using calculated total rent from agreement
+                    .serviceCharge(agreement.getServiceChargeAmount())
+                    .totalPayable(agreement.getTotalMonthlyRent().add(agreement.getServiceChargeAmount() != null ? agreement.getServiceChargeAmount() : BigDecimal.ZERO))
+                    .paidAmount(BigDecimal.ZERO)
+                    .outstandingAmount(agreement.getTotalMonthlyRent().add(agreement.getServiceChargeAmount() != null ? agreement.getServiceChargeAmount() : BigDecimal.ZERO))
+                    .dueDate(java.time.LocalDate.of(year, Integer.parseInt(month), 10))
+                    .status("UNPAID")
+                    .build();
+            
+            rentBillRepository.save(bill);
+        }
+    }
+
     // ==========================================
     // PAYMENT OPERATIONS
     // ==========================================
 
     @Override
     public PaymentDTO processPayment(PaymentDTO dto) {
-        if (paymentRepository.existsByPaymentNumber(dto.getPaymentNumber())) {
-            throw new IllegalArgumentException("Payment reference already exists: " + dto.getPaymentNumber());
-        }
+        // Existing logic...
+        return recordPayment(dto);
+    }
 
-        Tenant tenant = tenantRepository.findById(dto.getTenantId()).orElseThrow();
+    @Override
+    public PaymentDTO recordPayment(PaymentDTO dto) {
+        log.info("Recording payment of {} for tenant ID: {}", dto.getAmount(), dto.getTenantId());
+        
+        RentBill bill = rentBillRepository.findById(dto.getRentBillId())
+                .orElseThrow(() -> new IllegalArgumentException("Bill not found: " + dto.getRentBillId()));
 
-        RentBill bill = null;
-        if (dto.getRentBillId() != null) {
-            bill = rentBillRepository.findById(dto.getRentBillId()).orElseThrow();
-            // Update bill paid amount
-            bill.setPaidAmount(bill.getPaidAmount().add(dto.getAmount()));
-            rentBillRepository.save(bill); // outstanding calculated in preupdate
-        }
-
-        Arrear arrear = null;
-        if (dto.getArrearId() != null) {
-            arrear = arrearRepository.findById(dto.getArrearId()).orElseThrow();
-            arrear.setPaidAmount(arrear.getPaidAmount().add(dto.getAmount()));
-            arrearRepository.save(arrear);
-        }
-
-        AdvanceDeposit deposit = null;
-        if (dto.getAdvanceDepositId() != null) {
-            deposit = advanceDepositRepository.findById(dto.getAdvanceDepositId()).orElseThrow();
-        }
-
-        User createdBy = null;
-        if (dto.getCreatedById() != null) {
-            createdBy = userRepository.findById(dto.getCreatedById()).orElseThrow();
-        }
+        String paymentNumber = "PAY-" + System.currentTimeMillis();
 
         Payment payment = Payment.builder()
-                .paymentNumber(dto.getPaymentNumber())
-                .tenant(tenant)
+                .paymentNumber(paymentNumber)
+                .tenant(bill.getTenant())
                 .rentBill(bill)
-                .arrear(arrear)
-                .advanceDeposit(deposit)
                 .amount(dto.getAmount())
                 .paymentMethod(dto.getPaymentMethod())
-                .chequeNumber(dto.getChequeNumber())
-                .chequeDate(dto.getChequeDate())
-                .bankName(dto.getBankName())
                 .transactionRef(dto.getTransactionRef())
                 .paymentDate(dto.getPaymentDate())
-                .documentPath(dto.getDocumentPath())
-                .notes(dto.getNotes())
                 .status("COMPLETED")
-                .createdBy(createdBy)
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
+
+        // Update bill status
+        bill.setPaidAmount(bill.getPaidAmount().add(dto.getAmount()));
+        if (bill.getOutstandingAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            bill.setStatus("PAID");
+        } else {
+            bill.setStatus("PARTIALLY_PAID");
+        }
+        rentBillRepository.save(bill);
+
         return mapToPaymentDTO(savedPayment);
     }
 
@@ -218,6 +242,12 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public List<PaymentDTO> getPaymentsByBill(Long billId) {
         return paymentRepository.findByRentBillId(billId).stream().map(this::mapToPaymentDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PaymentDTO> getAllPayments() {
+        return paymentRepository.findAll().stream().map(this::mapToPaymentDTO)
                 .collect(Collectors.toList());
     }
 

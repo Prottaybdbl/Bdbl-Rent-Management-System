@@ -54,10 +54,18 @@ public class AgreementServiceImpl implements AgreementService {
 
     @Override
     public LeaseAgreementDTO createAgreement(LeaseAgreementDTO dto) {
-        log.info("Creating new lease agreement: {}", dto.getAgreementNumber());
+        log.info("Creating new lease agreement for tenant ID: {}", dto.getTenantId());
 
-        if (agreementRepository.existsByAgreementNumber(dto.getAgreementNumber())) {
-            throw new IllegalArgumentException("Agreement number already exists: " + dto.getAgreementNumber());
+        // 1. Generate Agreement Number if not provided
+        String agreementNumber = dto.getAgreementNumber();
+        if (agreementNumber == null || agreementNumber.trim().isEmpty()) {
+            java.time.LocalDate now = java.time.LocalDate.now();
+            long count = agreementRepository.count() + 1;
+            agreementNumber = String.format("BDBL/AGR/%d/%03d", now.getYear(), count);
+        }
+
+        if (agreementRepository.existsByAgreementNumber(agreementNumber)) {
+            throw new IllegalArgumentException("Agreement number already exists: " + agreementNumber);
         }
 
         Tenant tenant = tenantRepository.findById(dto.getTenantId())
@@ -70,10 +78,16 @@ public class AgreementServiceImpl implements AgreementService {
         if (dto.getFloorId() != null) {
             floor = floorRepository.findById(dto.getFloorId())
                     .orElseThrow(() -> new IllegalArgumentException("Floor not found with ID: " + dto.getFloorId()));
+            
+            // Validate area availability
+            java.math.BigDecimal availableArea = floor.getAvailableAreaSft();
+            if (dto.getAgreementAreaSft().compareTo(availableArea) > 0) {
+                throw new IllegalArgumentException("Requested area (" + dto.getAgreementAreaSft() + ") exceeds available area (" + availableArea + ") on this floor.");
+            }
         }
 
         LeaseAgreement agreement = LeaseAgreement.builder()
-                .agreementNumber(dto.getAgreementNumber())
+                .agreementNumber(agreementNumber)
                 .tenant(tenant)
                 .building(building)
                 .floor(floor)
@@ -81,12 +95,12 @@ public class AgreementServiceImpl implements AgreementService {
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .durationMonths(dto.getDurationMonths())
-                .rentPerSft(dto.getRentPerSft())
-                .totalMonthlyRent(dto.getTotalMonthlyRent())
-                .serviceChargeAmount(dto.getServiceChargeAmount())
-                .vatPercentage(dto.getVatPercentage())
-                .taxPercentage(dto.getTaxPercentage())
-                .advanceDepositAmount(dto.getAdvanceDepositAmount())
+                .rentPerSft(dto.getBaseRentRatePerSft() != null ? dto.getBaseRentRatePerSft() : dto.getRentPerSft())
+                .totalMonthlyRent(dto.getBaseMonthlyRent() != null ? dto.getBaseMonthlyRent() : dto.getTotalMonthlyRent())
+                .serviceChargeAmount(dto.getServiceCharge() != null ? dto.getServiceCharge() : dto.getServiceChargeAmount())
+                .vatPercentage(dto.getVatPercent() != null ? dto.getVatPercent() : dto.getVatPercentage())
+                .taxPercentage(dto.getTaxPercent() != null ? dto.getTaxPercent() : dto.getTaxPercentage())
+                .advanceDepositAmount(dto.getAdvanceAmount() != null ? dto.getAdvanceAmount() : dto.getAdvanceDepositAmount())
                 .securityDepositAmount(dto.getSecurityDepositAmount())
                 .rentEscalationPercentage(dto.getRentEscalationPercentage())
                 .escalationFrequencyMonths(dto.getEscalationFrequencyMonths())
@@ -94,12 +108,47 @@ public class AgreementServiceImpl implements AgreementService {
                 .gracePeriodDays(dto.getGracePeriodDays())
                 .signedByBdbl(dto.getSignedByBdbl())
                 .signedByTenant(dto.getSignedByTenant())
-                .agreementDate(dto.getAgreementDate())
+                .agreementDate(dto.getAgreementDate() != null ? dto.getAgreementDate() : java.time.LocalDate.now())
                 .cancellationNoticePeriod(dto.getCancellationNoticePeriod())
-                .status("DRAFT")
+                .status("ACTIVE") // Set to ACTIVE as per common flow
+                .notes(dto.getRemarks() != null ? dto.getRemarks() : dto.getRemarks())
                 .build();
 
         LeaseAgreement savedAgreement = agreementRepository.save(agreement);
+
+        // 2. Handle Floor Allocation (Update floor's allocated area)
+        if (floor != null) {
+            java.math.BigDecimal currentAllocated = floor.getAllocatedAreaSft() != null ? floor.getAllocatedAreaSft() : java.math.BigDecimal.ZERO;
+            floor.setAllocatedAreaSft(currentAllocated.add(dto.getAgreementAreaSft()));
+            floorRepository.save(floor);
+        }
+
+        // 3. Create Advance Deposit Record if provided
+        if (dto.getAdvanceAmount() != null && dto.getAdvanceAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            AdvanceDeposit advance = AdvanceDeposit.builder()
+                    .agreement(savedAgreement)
+                    .depositType("ADVANCE_RENT")
+                    .originalAmount(dto.getAdvanceAmount())
+                    .remainingAmount(dto.getAdvanceAmount())
+                    .receivedDate(java.time.LocalDate.now())
+                    .status("ACTIVE")
+                    .build();
+            advanceDepositRepository.save(advance);
+        }
+
+        // 4. Create Security Deposit Record if provided
+        if (dto.getSecurityDepositAmount() != null && dto.getSecurityDepositAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            AdvanceDeposit security = AdvanceDeposit.builder()
+                    .agreement(savedAgreement)
+                    .depositType("SECURITY_DEPOSIT")
+                    .originalAmount(dto.getSecurityDepositAmount())
+                    .remainingAmount(dto.getSecurityDepositAmount())
+                    .receivedDate(java.time.LocalDate.now())
+                    .status("ACTIVE")
+                    .build();
+            advanceDepositRepository.save(security);
+        }
+
         return mapToLeaseAgreementDTO(savedAgreement);
     }
 
@@ -333,15 +382,22 @@ public class AgreementServiceImpl implements AgreementService {
         }
 
         dto.setAgreementAreaSft(agreement.getAgreementAreaSft());
+        dto.setAgreementType(agreement.getAgreementType());
         dto.setStartDate(agreement.getStartDate());
         dto.setEndDate(agreement.getEndDate());
         dto.setDurationMonths(agreement.getDurationMonths());
         dto.setRentPerSft(agreement.getRentPerSft());
+        dto.setBaseRentRatePerSft(agreement.getRentPerSft());
+        dto.setBaseMonthlyRent(agreement.getTotalMonthlyRent());
         dto.setTotalMonthlyRent(agreement.getTotalMonthlyRent());
         dto.setServiceChargeAmount(agreement.getServiceChargeAmount());
+        dto.setServiceCharge(agreement.getServiceChargeAmount());
         dto.setVatPercentage(agreement.getVatPercentage());
+        dto.setVatPercent(agreement.getVatPercentage());
         dto.setTaxPercentage(agreement.getTaxPercentage());
+        dto.setTaxPercent(agreement.getTaxPercentage());
         dto.setAdvanceDepositAmount(agreement.getAdvanceDepositAmount());
+        dto.setAdvanceAmount(agreement.getAdvanceDepositAmount());
         dto.setSecurityDepositAmount(agreement.getSecurityDepositAmount());
         dto.setRentEscalationPercentage(agreement.getRentEscalationPercentage());
         dto.setEscalationFrequencyMonths(agreement.getEscalationFrequencyMonths());
@@ -352,6 +408,7 @@ public class AgreementServiceImpl implements AgreementService {
         dto.setAgreementDate(agreement.getAgreementDate());
         dto.setCancellationNoticePeriod(agreement.getCancellationNoticePeriod());
         dto.setStatus(agreement.getStatus());
+        dto.setRemarks(agreement.getNotes());
         dto.setCreatedAt(agreement.getCreatedAt());
         return dto;
     }

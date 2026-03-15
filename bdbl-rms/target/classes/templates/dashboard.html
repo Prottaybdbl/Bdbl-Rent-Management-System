@@ -320,7 +320,9 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-label">Total Monthly Revenue</span>
-                <span class="stat-value">৳ 45,82,500</span>
+                <span class="stat-value"
+                    th:text="${metrics.totalMonthlyRevenue != null ? '৳ ' + #numbers.formatDecimal(metrics.totalMonthlyRevenue, 0, 'COMMA', 2, 'POINT') : '৳ 0'}">৳
+                    0</span>
                 <div class="stat-trend trend-up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -332,7 +334,8 @@
             </div>
             <div class="stat-card">
                 <span class="stat-label">Occupancy Rate</span>
-                <span class="stat-value" style="color: var(--accent-color);">92.4%</span>
+                <span class="stat-value" style="color: var(--accent-color);"
+                    th:text="${metrics.occupancyRate != null ? metrics.occupancyRate + '%' : '0%'}">0%</span>
                 <div class="stat-trend trend-up">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -344,7 +347,9 @@
             </div>
             <div class="stat-card">
                 <span class="stat-label">Outstanding Arrears</span>
-                <span class="stat-value" style="color: var(--error);">৳ 12,45,000</span>
+                <span class="stat-value" style="color: var(--error);"
+                    th:text="${metrics.outstandingArrears != null ? '৳ ' + #numbers.formatDecimal(metrics.outstandingArrears, 0, 'COMMA', 2, 'POINT') : '৳ 0'}">৳
+                    0</span>
                 <div class="stat-trend trend-down">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -403,25 +408,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Samsung BD</td>
-                            <td>12 Mar 2026</td>
+                        <tr th:if="${#lists.isEmpty(metrics.expiringAgreements)}">
+                            <td colspan="3" style="text-align: center; color: var(--text-secondary);">No agreements
+                                expiring soon.</td>
+                        </tr>
+                        <tr th:each="agreement : ${metrics.expiringAgreements}">
+                            <td th:text="${agreement.tenant.companyName}">Company Name</td>
+                            <td th:text="${#temporals.format(agreement.endDate, 'dd MMM yyyy')}">Date</td>
                             <td><span class="status-pill status-warning">Notify</span></td>
-                        </tr>
-                        <tr>
-                            <td>Grameenphone</td>
-                            <td>25 Feb 2026</td>
-                            <td><span class="status-pill status-expiry">Expiring</span></td>
-                        </tr>
-                        <tr>
-                            <td>Pathao Ltd</td>
-                            <td>30 Jun 2026</td>
-                            <td><span class="status-pill status-active">Active</span></td>
-                        </tr>
-                        <tr>
-                            <td>Bkash Ltd</td>
-                            <td>15 Apr 2026</td>
-                            <td><span class="status-pill status-active">Active</span></td>
                         </tr>
                     </tbody>
                 </table>

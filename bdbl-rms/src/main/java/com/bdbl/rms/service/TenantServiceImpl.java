@@ -47,7 +47,7 @@ public class TenantServiceImpl implements TenantService {
                 .tradeLicenseNo(dto.getTradeLicenseNo())
                 .tinNumber(dto.getTinNumber())
                 .registrationAddress(dto.getRegistrationAddress())
-                .contactAddress(dto.getContactAddress())
+                .contactAddress(dto.getOfficeAddress() != null ? dto.getOfficeAddress() : dto.getContactAddress())
                 .phonePrimary(dto.getPhonePrimary())
                 .phoneSecondary(dto.getPhoneSecondary())
                 .email(dto.getEmail())
